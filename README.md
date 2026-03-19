@@ -33,6 +33,8 @@ Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI prov
 
 ### Option A: Claude Desktop (Recommended for Claude users)
 
+> **Requires Python 3.8+.** If you don't have Python installed, use Option B (OpenClaw) instead — no Python needed.
+
 #### How it works
 
 Claude Desktop can't call external services on its own — it uses a protocol called MCP (Model Context Protocol) to connect to tools. LawTasksAI includes a small server that runs on your computer and acts as the bridge between Claude and LawTasksAI's 200+ legal skills. The installer below sets this up automatically and backs up your existing settings first.
