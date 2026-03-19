@@ -31,49 +31,35 @@ Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI prov
 
 ## Getting Started
 
-### Option A: Claude Desktop / MCP Clients
+### Option A: Claude Desktop (Recommended for Claude users)
+
+#### How it works
+
+Claude Desktop can't call external services on its own — it uses a protocol called MCP (Model Context Protocol) to connect to tools. LawTasksAI includes a small server that runs on your computer and acts as the bridge between Claude and LawTasksAI's 200+ legal skills. The installer below sets this up automatically and backs up your existing settings first.
 
 #### 1. Buy a Credit Pack
 
 Start with the [Trial pack ($20 for 10 tasks)](https://lawtasksai.com/#pricing). Each task costs one credit. Credits never expire. After purchase, you'll receive a license key by email (starts with `lt_`).
 
-#### 2. Download the MCP Server
+#### 2. Download and Unzip
 
 Go to your [LawTasksAI Account Page](https://lawtasksai.com/download.html), log in with your license key, and click "Download Skill Loader." Unzip the download — you'll find a `lawtasksai-mcp` folder inside.
 
-#### 3. Install Dependencies
+#### 3. Run the Installer
+
+Open a terminal (Mac: Terminal app, Windows: Command Prompt) and run:
 
 ```bash
 cd lawtasksai-mcp
-pip install -r requirements.txt
+python install.py
 ```
 
-#### 4. Configure Claude Desktop
+The installer will:
+- Install the required packages
+- Safely add LawTasksAI to your Claude Desktop settings (your existing settings are backed up first)
+- Prompt for your license key if needed
 
-Edit your Claude Desktop config file:
-
-- **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-Add:
-
-```json
-{
-  "mcpServers": {
-    "lawtasksai": {
-      "command": "python",
-      "args": ["/FULL/PATH/TO/lawtasksai-mcp/server.py"],
-      "env": {
-        "LAWTASKSAI_LICENSE_KEY": "lt_your_key_here"
-      }
-    }
-  }
-}
-```
-
-Your license key is also pre-configured in the `.env` file included in the download.
-
-#### 5. Restart Claude Desktop and Ask a Question
+#### 4. Restart Claude Desktop and Ask a Question
 
 > *"What's the statute of limitations for breach of contract in Texas?"*
 
@@ -83,11 +69,11 @@ Your license key is also pre-configured in the `.env` file included in the downl
 
 You don't need to know which task to use — LawTasksAI automatically picks the right one based on your question.
 
-Works with any MCP-compatible client (Cursor, Windsurf, etc.) — just point it to `server.py`.
+Works with any MCP-compatible client (Cursor, Windsurf, etc.) — just run the installer.
 
-### Option B: OpenClaw (Easiest)
+### Option B: OpenClaw (Easiest — no terminal required)
 
-[OpenClaw](https://openclaw.ai) is a personal AI assistant that runs on your computer. No config file editing required.
+[OpenClaw](https://openclaw.ai) is a personal AI assistant that runs on your computer. No config files, no terminal commands — just conversation.
 
 1. Install [OpenClaw](https://openclaw.ai) (one command)
 2. Download the skill file from your [Account Page](https://lawtasksai.com/download.html)
