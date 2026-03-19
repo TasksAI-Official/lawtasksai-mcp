@@ -31,7 +31,7 @@ Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI prov
 
 ## Getting Started
 
-### Option A: Claude Desktop (Recommended for Claude users)
+### Option A: Claude Desktop* (Recommended for Claude users)
 
 > **Requires Python 3.8+.** If you don't have Python installed, use Option B (OpenClaw) instead — no Python needed.
 
@@ -96,6 +96,10 @@ See [full setup guide](https://lawtasksai.com/getting-started.html) for detailed
 | Efficient | 250 tasks | $250 |
 | Unstoppable | 625 tasks | $500 |
 | Apex | 1,500 tasks | $1,000 |
+
+---
+
+*\*Claude Desktop, Cursor, and other AI clients require their own subscription or API access. LawTasksAI credit packs cover LawTasksAI skills only — charges from your AI provider (Anthropic, OpenAI, etc.) are separate.*
 
 ---
 
