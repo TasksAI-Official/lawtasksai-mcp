@@ -44,16 +44,14 @@ LawTasksAI runs inside [OpenClaw](https://openclaw.ai) — a personal AI assista
 npm install -g openclaw
 ```
 
-### 3. Add LawTasksAI
+### 3. Install the LawTasksAI Skill
 
 - Download the skill file from your [Account Page](https://lawtasksai.com/download.html)
 - Copy the skill folder into `~/.openclaw/skills/`
-- Enter your license key when prompted
-- Start asking legal questions — all 200+ tasks ready to use
 
-### 4. Start Using Skills
+### 4. Ask a Legal Question
 
-Once connected, ask OpenClaw anything legal:
+Just ask OpenClaw any legal question — the loader activates automatically on first use and walks you through entering your license key (`lt_...`). After that, all 200+ tasks are ready with no further setup.
 
 > *"Draft a motion to compel discovery for a breach of contract case in Colorado."*
 
