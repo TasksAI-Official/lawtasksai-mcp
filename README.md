@@ -35,27 +35,13 @@ Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI prov
 
 Sign up at **[lawtasksai.com](https://lawtasksai.com)** and purchase a credit pack. You'll receive a license key by email.
 
-### 2. Add to Claude Desktop
+### 2. Install via OpenClaw
 
-Add the following to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "lawtasksai": {
-      "command": "npx",
-      "args": ["-y", "@lawtasksai/mcp-server"],
-      "env": {
-        "LAWTASKSAI_LICENSE_KEY": "your-license-key-here"
-      }
-    }
-  }
-}
-```
+LawTasksAI is delivered as an OpenClaw skill loader. Visit **[lawtasksai.com/getting-started](https://lawtasksai.com/getting-started.html)** for full installation instructions — the installer walks you through setup and prompts for your license key.
 
 ### 3. Start Using Skills
 
-Once connected, ask Claude anything legal:
+Once connected, ask your AI assistant anything legal:
 
 > *"Draft a motion to compel discovery for a breach of contract case in Colorado."*
 
