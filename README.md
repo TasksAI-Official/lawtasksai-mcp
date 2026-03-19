@@ -31,36 +31,39 @@ Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI prov
 
 ## Getting Started
 
-### 1. Get a License Key
+No coding required. If you can install an app and type a question, you can use LawTasksAI.
 
-Sign up at **[lawtasksai.com](https://lawtasksai.com)** and purchase a credit pack. You'll receive a license key by email.
+### 1. Buy a Credit Pack
+
+Start with the [Trial pack ($20 for 10 tasks)](https://lawtasksai.com/#pricing). Each task costs one credit. Credits never expire. After purchase, you'll receive a license key by email (starts with `lt_`).
 
 ### 2. Install OpenClaw
 
-LawTasksAI runs inside [OpenClaw](https://openclaw.ai) — a personal AI assistant that runs on your computer.
+Visit [openclaw.ai](https://openclaw.ai) and follow their install instructions. OpenClaw is the AI assistant that runs LawTasksAI's legal tools. Once installed, it gives you a chat window — similar to ChatGPT.
 
-```bash
-# Install OpenClaw (one command)
-npm install -g openclaw
-```
+### 3. Download the Skill File
 
-### 3. Install the LawTasksAI Skill
+Go to your [LawTasksAI Account Page](https://lawtasksai.com/download.html), log in with your license key, and click "Download Skill Loader." Save it anywhere on your computer.
 
-- Download the skill file from your [Account Page](https://lawtasksai.com/download.html)
-- Copy the skill folder into `~/.openclaw/skills/`
-- Restart OpenClaw so it picks up the new skill (Claude Desktop users: restart Claude Desktop)
+### 4. Tell OpenClaw to Install It
 
-### 4. Ask a Legal Question
+Open your OpenClaw chat and type:
 
-Just ask OpenClaw any legal question — the loader activates automatically on first use and walks you through entering your license key (`lt_...`). After that, all 200+ tasks are ready with no further setup.
+> *I just downloaded the LawTasksAI skill file to my Downloads folder. Please find it, unzip it if needed, and install it so I can use it. My license key is lt_XXXXX*
+
+Replace `lt_XXXXX` with your actual license key. OpenClaw will find the file, install it, configure your license, and confirm when everything is ready.
+
+### 5. Ask Your First Legal Question
+
+> *"What's the statute of limitations for breach of contract in Texas?"*
 
 > *"Draft a motion to compel discovery for a breach of contract case in Colorado."*
 
-> *"Analyze this contract clause for indemnification risk."*
+> *"Summarize Colorado's rules on expert witness disclosures."*
 
-> *"Prepare deposition outline for a plaintiff in a personal injury case."*
+You don't need to know which task to use — LawTasksAI automatically picks the right one based on your question.
 
-Also works with **Claude Desktop** and any MCP-compatible client. See [full setup guide](https://lawtasksai.com/getting-started.html).
+Also works with **Claude Desktop** and any **MCP-compatible client** (Cursor, Windsurf, etc.). See [full setup guide](https://lawtasksai.com/getting-started.html) for all options.
 
 ---
 
