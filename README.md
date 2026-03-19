@@ -48,6 +48,7 @@ npm install -g openclaw
 
 - Download the skill file from your [Account Page](https://lawtasksai.com/download.html)
 - Copy the skill folder into `~/.openclaw/skills/`
+- Restart OpenClaw so it picks up the new skill (Claude Desktop users: restart Claude Desktop)
 
 ### 4. Ask a Legal Question
 
