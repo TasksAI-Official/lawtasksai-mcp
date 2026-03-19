@@ -31,39 +31,70 @@ Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI prov
 
 ## Getting Started
 
-No coding required. If you can install an app and type a question, you can use LawTasksAI.
+### Option A: Claude Desktop / MCP Clients
 
-### 1. Buy a Credit Pack
+#### 1. Buy a Credit Pack
 
 Start with the [Trial pack ($20 for 10 tasks)](https://lawtasksai.com/#pricing). Each task costs one credit. Credits never expire. After purchase, you'll receive a license key by email (starts with `lt_`).
 
-### 2. Install OpenClaw
+#### 2. Download the MCP Server
 
-Visit [openclaw.ai](https://openclaw.ai) and follow their install instructions. OpenClaw is the AI assistant that runs LawTasksAI's legal tools. Once installed, it gives you a chat window — similar to ChatGPT.
+Go to your [LawTasksAI Account Page](https://lawtasksai.com/download.html), log in with your license key, and click "Download Skill Loader." Unzip the download — you'll find a `lawtasksai-mcp` folder inside.
 
-### 3. Download the Skill File
+#### 3. Install Dependencies
 
-Go to your [LawTasksAI Account Page](https://lawtasksai.com/download.html), log in with your license key, and click "Download Skill Loader." Save it anywhere on your computer.
+```bash
+cd lawtasksai-mcp
+pip install -r requirements.txt
+```
 
-### 4. Tell OpenClaw to Install It
+#### 4. Configure Claude Desktop
 
-Open your OpenClaw chat and type:
+Edit your Claude Desktop config file:
 
-> *I just downloaded the LawTasksAI skill file to my Downloads folder. Please find it, unzip it if needed, and install it so I can use it. My license key is lt_XXXXX*
+- **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-Replace `lt_XXXXX` with your actual license key. OpenClaw will find the file, install it, configure your license, and confirm when everything is ready.
+Add:
 
-### 5. Ask Your First Legal Question
+```json
+{
+  "mcpServers": {
+    "lawtasksai": {
+      "command": "python",
+      "args": ["/FULL/PATH/TO/lawtasksai-mcp/server.py"],
+      "env": {
+        "LAWTASKSAI_LICENSE_KEY": "lt_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Your license key is also pre-configured in the `.env` file included in the download.
+
+#### 5. Restart Claude Desktop and Ask a Question
 
 > *"What's the statute of limitations for breach of contract in Texas?"*
 
-> *"Draft a motion to compel discovery for a breach of contract case in Colorado."*
+> *"Draft a motion to compel discovery in a breach of contract case in Colorado."*
 
 > *"Summarize Colorado's rules on expert witness disclosures."*
 
 You don't need to know which task to use — LawTasksAI automatically picks the right one based on your question.
 
-Also works with **Claude Desktop** and any **MCP-compatible client** (Cursor, Windsurf, etc.). See [full setup guide](https://lawtasksai.com/getting-started.html) for all options.
+Works with any MCP-compatible client (Cursor, Windsurf, etc.) — just point it to `server.py`.
+
+### Option B: OpenClaw (Easiest)
+
+[OpenClaw](https://openclaw.ai) is a personal AI assistant that runs on your computer. No config file editing required.
+
+1. Install [OpenClaw](https://openclaw.ai) (one command)
+2. Download the skill file from your [Account Page](https://lawtasksai.com/download.html)
+3. Tell OpenClaw: *"I just downloaded the LawTasksAI skill file to my Downloads folder. Please find it, unzip it if needed, and install it so I can use it. My license key is lt_XXXXX"*
+4. Start asking legal questions — 200+ tasks ready to use
+
+See [full setup guide](https://lawtasksai.com/getting-started.html) for detailed step-by-step instructions.
 
 ---
 
