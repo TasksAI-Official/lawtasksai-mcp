@@ -1,88 +1,83 @@
 # LawTasksAI MCP Server
 
-**200+ AI-powered legal research and drafting skills for attorneys — accessible directly inside Claude, Cursor, and any MCP-compatible AI client.**
+**200+ AI-powered legal research and drafting skills for attorneys.**
 
-[![License Key Required](https://img.shields.io/badge/license-key-required-blue)](https://lawtasksai.com)
-[![Website](https://img.shields.io/badge/website-lawtasksai.com-green)](https://lawtasksai.com)
+Works with Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI client.
+
+[![LawTasksAI MCP server](https://glama.ai/mcp/servers/laudoluxDev/lawtasksai-mcp/badges/score.svg)](https://glama.ai/mcp/servers/laudoluxDev/lawtasksai-mcp)
 
 ---
 
 ## What It Does
 
-LawTasksAI connects your AI assistant to a comprehensive library of legal skills built specifically for attorneys and paralegals:
+LawTasksAI gives your AI assistant 200+ expert legal frameworks covering:
 
-- **Legal Research** — case law analysis, statute interpretation, regulatory review
-- **Drafting** — motions, demand letters, contracts, briefs, memos
-- **Litigation Support** — deposition prep, witness outlines, discovery checklists
-- **Compliance** — ABA ethics guidance, jurisdiction-specific rules
-- **Document Review** — contract analysis, risk identification, redline summaries
+- Case law research & analysis
+- Motion drafting (to compel, dismiss, suppress, etc.)
+- Contract review & redlining
+- Deposition preparation
+- Statute of limitations calculations
+- ABA ethics & compliance tools
+- And much more
 
-All 200+ skills are maintained and updated by legal professionals.
-
----
-
-## Privacy
-
-**LawTasksAI never receives your client data.**
-
-Skills execute through your chosen AI provider (Claude, GPT, etc.). Your AI provider processes the content — LawTasksAI only delivers the skill instructions. Client confidences stay between you and your AI provider.
+**Privacy model:** Your documents never leave your machine. LawTasksAI delivers the expert analysis framework; your AI applies it locally.
 
 ---
 
-## Getting Started
+## Quick Install
 
-### Option A: Claude Desktop* (Recommended for Claude users)
+### Requirements
+- Python 3.8 or later
+- Claude Desktop, Cursor, Windsurf, or any MCP-compatible client
+- A LawTasksAI license key ([get one at lawtasksai.com](https://lawtasksai.com))
 
-> **Requires Python 3.8+.** If you don't have Python installed, use Option B (OpenClaw) instead — no Python needed.
+### Steps
 
-#### How it works
-
-Claude Desktop can't call external services on its own — it uses a protocol called MCP (Model Context Protocol) to connect to tools. LawTasksAI includes a small server that runs on your computer and acts as the bridge between Claude and LawTasksAI's 200+ legal skills. The installer below sets this up automatically and backs up your existing settings first.
-
-#### 1. Buy a Credit Pack
-
-Start with the [Trial pack ($20 for 10 tasks)](https://lawtasksai.com/#pricing). Each task costs one credit. Credits never expire. After purchase, you'll receive a license key by email (starts with `lt_`).
-
-#### 2. Download and Unzip
-
-Go to your [LawTasksAI Account Page](https://lawtasksai.com/download.html), log in with your license key, and click "Download Skill Loader." Unzip the download — you'll find a `lawtasksai-mcp` folder inside.
-
-#### 3. Run the Installer
-
-Open a terminal (Mac: Terminal app, Windows: Command Prompt) and run:
+1. **Download** your personalized package from your [Account Page](https://lawtasksai.com/download)
+2. **Extract** the zip — you'll see a `lawtasksai` folder
+3. **Run the installer** in terminal:
 
 ```bash
-cd lawtasksai-mcp
-python install.py
+cd ~/Downloads/lawtasksai/mcp
+python3 install.py
 ```
 
-The installer will:
-- Install the required packages
-- Safely add LawTasksAI to your Claude Desktop settings (your existing settings are backed up first)
-- Prompt for your license key if needed
+4. **Restart** your MCP client (Claude Desktop, Cursor, etc.)
 
-#### 4. Restart Claude Desktop and Ask a Question
+The installer auto-detects your installed MCP clients and configures all of them. Your license key is pre-configured in the download.
 
-> *"What's the statute of limitations for breach of contract in Texas?"*
+**Mac users:** macOS will ask *"python3 would like to access files in your Downloads folder"* — click **Allow**. This is a one-time security prompt.
 
-> *"Draft a motion to compel discovery in a breach of contract case in Colorado."*
+---
 
-> *"Summarize Colorado's rules on expert witness disclosures."*
+## Manual Configuration
 
-You don't need to know which task to use — LawTasksAI automatically picks the right one based on your question.
+If you prefer to configure manually, add this to your MCP client config:
 
-Works with any MCP-compatible client (Cursor, Windsurf, etc.) — just run the installer.
+```json
+{
+  "mcpServers": {
+    "lawtasksai": {
+      "command": "python3",
+      "args": ["/path/to/server.py"],
+      "env": {
+        "LAWTASKSAI_LICENSE_KEY": "your_license_key_here"
+      }
+    }
+  }
+}
+```
 
-### Option B: OpenClaw (Easiest — no terminal required)
+---
 
-[OpenClaw](https://openclaw.ai) is a personal AI assistant that runs on your computer. No config files, no terminal commands — just conversation.
+## Tools
 
-1. Install [OpenClaw](https://openclaw.ai) (one command)
-2. Download the skill file from your [Account Page](https://lawtasksai.com/download.html)
-3. Tell OpenClaw: *"I just downloaded the LawTasksAI skill file to my Downloads folder. Please find it, unzip it if needed, and install it so I can use it. My license key is lt_XXXXX"*
-4. Start asking legal questions — 200+ tasks ready to use
-
-See [full setup guide](https://lawtasksai.com/getting-started.html) for detailed step-by-step instructions.
+| Tool | Description |
+|------|-------------|
+| `lawtasks_search` | Search 200+ skills by legal topic |
+| `lawtasks_execute` | Get the full expert framework for a skill (costs 1 credit) |
+| `lawtasks_balance` | Check your remaining credit balance |
+| `lawtasks_categories` | Browse skills by practice area |
 
 ---
 
@@ -90,26 +85,19 @@ See [full setup guide](https://lawtasksai.com/getting-started.html) for detailed
 
 | Plan | Credits | Price |
 |------|---------|-------|
-| Trial | 10 tasks | $20 |
-| Essentials | 50 tasks | $75 |
-| Accelerator | 100 tasks | $125 |
-| Efficient | 250 tasks | $250 |
-| Unstoppable | 625 tasks | $500 |
-| Apex | 1,500 tasks | $1,000 |
+| Trial | 10 | $20 |
+| Essentials | 50 | $75 |
+| Accelerator | 100 | $125 |
+| Efficient | 250 | $250 |
+| Unstoppable | 625 | $500 |
+| Apex | 1,500 | $1,000 |
 
----
-
-*\*Claude Desktop, Cursor, and other AI clients require their own subscription or API access. LawTasksAI credit packs cover LawTasksAI skills only — charges from your AI provider (Anthropic, OpenAI, etc.) are separate.*
-
----
-
-## Disclaimer
-
-LawTasksAI is software that assists attorneys and paralegals with legal research and drafting. It is not a law firm and does not provide legal advice. Always apply your own professional review and judgment to any output.
+Credits never expire. [View full pricing →](https://lawtasksai.com/#pricing)
 
 ---
 
 ## Support
 
-- **Website:** [lawtasksai.com](https://lawtasksai.com)
 - **Email:** hello@lawtasksai.com
+- **Website:** [lawtasksai.com](https://lawtasksai.com)
+- **Getting Started:** [lawtasksai.com/getting-started.html](https://lawtasksai.com/getting-started.html)
