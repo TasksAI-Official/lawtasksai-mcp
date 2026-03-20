@@ -1,0 +1,26 @@
+{
+  "name": "LawTasksAI MCP Server",
+  "description": "200+ AI-powered legal research and drafting skills for attorneys — case law analysis, motion drafting, contract review, deposition prep, and ABA compliance tools. LawTasksAI.com never sees your client data.",
+  "license": "MIT",
+  "homepage": "https://lawtasksai.com",
+  "repository": "https://github.com/laudoluxDev/lawtasksai-mcp",
+  "categories": ["legal", "productivity", "research"],
+  "tools": [
+    {
+      "name": "lawtasks_search",
+      "description": "Search 200+ legal skills by keyword or topic"
+    },
+    {
+      "name": "lawtasks_execute",
+      "description": "Get the full expert analysis framework for a skill (costs 1 credit)"
+    },
+    {
+      "name": "lawtasks_balance",
+      "description": "Check your remaining credit balance"
+    },
+    {
+      "name": "lawtasks_categories",
+      "description": "Browse skills by practice area"
+    }
+  ]
+}
