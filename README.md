@@ -20,7 +20,7 @@ LawTasksAI gives your AI assistant 200+ expert legal frameworks covering:
 - ABA ethics & compliance tools
 - And much more
 
-**Privacy model:** LawTasksAI.com never sees your client data. Skills run entirely on your machine — your documents stay local. For full details see our [Zero Data Retention & ABA Compliance guide](https://lawtasksai.com/zdr-aba-compliance-guide).
+**Privacy model:** LawTasksAI.com never sees your prompts, your client files, or your client data. Skills run entirely on your machine — your documents stay local if using OpenClaw, or go to your LLM provider if using a cloud AI. For full details see our [Zero Data Retention & ABA Compliance guide](https://lawtasksai.com/zdr-aba-compliance-guide).
 
 ---
 
