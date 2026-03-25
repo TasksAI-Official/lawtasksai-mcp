@@ -1,4 +1,6 @@
 {
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": ["laudoluxDev"],
   "name": "LawTasksAI MCP Server",
   "description": "200+ AI-powered legal research and drafting skills for attorneys — case law analysis, motion drafting, contract review, deposition prep, and ABA compliance tools. LawTasksAI.com never sees your client data.",
   "license": "MIT",
