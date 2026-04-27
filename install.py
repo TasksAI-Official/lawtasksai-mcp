@@ -63,44 +63,93 @@ def check_python_version():
         sys.exit(1)
 
 
+def _resolve_client_path(candidates):
+    """
+    Given a list of candidate config paths (in priority order), return the
+    first one whose parent directory already exists, or the first candidate
+    as the default write target (installer will create the dir).
+    """
+    for path in candidates:
+        if path.parent.exists():
+            return path
+    # No existing parent found — return the first (highest-priority) path.
+    # update_config() will mkdir -p the parent before writing.
+    return candidates[0]
+
+
 def get_mcp_clients():
-    """Return dict of {client_name: config_path} for all installed MCP clients."""
+    """
+    Return dict of {client_name: config_path} for all installed MCP clients.
+
+    For Cursor and Windsurf we check their native MCP config paths first.
+    If those don't exist, we fall back to the Cline extension path so users
+    who run Cursor/Windsurf via the Cline plugin are also covered.
+    """
     system = platform.system()
     clients = {}
 
     if system == "Darwin":
+        # Claude Desktop
         claude_path = Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
-        cursor_path = Path.home() / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
-        windsurf_path = Path.home() / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
-
         if (Path.home() / "Applications" / "Claude.app").exists() or \
            Path("/Applications/Claude.app").exists() or \
            claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
+
+        # Cursor — native path first, Cline extension fallback
+        cursor_native  = Path.home() / ".cursor" / "mcp.json"
+        cursor_cline   = Path.home() / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if (Path.home() / "Applications" / "Cursor.app").exists() or \
-           Path("/Applications/Cursor.app").exists():
-            clients["Cursor"] = cursor_path
+           Path("/Applications/Cursor.app").exists() or \
+           cursor_native.parent.exists() or cursor_cline.parent.exists():
+            clients["Cursor"] = _resolve_client_path([cursor_native, cursor_cline])
+
+        # Windsurf — native path first, Cline extension fallback
+        windsurf_native = Path.home() / ".codeium" / "windsurf" / "mcp_config.json"
+        windsurf_cline  = Path.home() / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if (Path.home() / "Applications" / "Windsurf.app").exists() or \
-           Path("/Applications/Windsurf.app").exists():
-            clients["Windsurf"] = windsurf_path
+           Path("/Applications/Windsurf.app").exists() or \
+           windsurf_native.parent.exists() or windsurf_cline.parent.exists():
+            clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
     elif system == "Windows":
         appdata = os.environ.get("APPDATA", "")
-        local = os.environ.get("LOCALAPPDATA", "")
-        claude_path = Path(appdata) / "Claude" / "claude_desktop_config.json"
-        cursor_path = Path(appdata) / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
-        windsurf_path = Path(local) / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        local   = os.environ.get("LOCALAPPDATA", "")
 
-        for name, path in [("Claude Desktop", claude_path), ("Cursor", cursor_path), ("Windsurf", windsurf_path)]:
-            if path and path.parent.exists():
-                clients[name] = path
+        # Claude Desktop
+        claude_path = Path(appdata) / "Claude" / "claude_desktop_config.json"
+        if claude_path.parent.exists():
+            clients["Claude Desktop"] = claude_path
+
+        # Cursor — native path first, Cline extension fallback
+        cursor_native = Path(appdata) / "Cursor" / "User" / "globalStorage" / "cursor-mcp" / "mcp.json"
+        cursor_cline  = Path(appdata) / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if cursor_native.parent.exists() or cursor_cline.parent.exists():
+            clients["Cursor"] = _resolve_client_path([cursor_native, cursor_cline])
+
+        # Windsurf — native path first, Cline extension fallback
+        windsurf_native = Path(local) / "Windsurf" / "User" / "globalStorage" / "windsurf-mcp" / "mcp_config.json"
+        windsurf_cline  = Path(local) / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if windsurf_native.parent.exists() or windsurf_cline.parent.exists():
+            clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
     else:
+        # Linux
         claude_path = Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
-        cursor_path = Path.home() / ".config" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
-        for name, path in [("Claude Desktop", claude_path), ("Cursor", cursor_path)]:
-            if path and path.parent.exists():
-                clients[name] = path
+        if claude_path.parent.exists():
+            clients["Claude Desktop"] = claude_path
+
+        # Cursor — native path first, Cline extension fallback
+        cursor_native = Path.home() / ".cursor" / "mcp.json"
+        cursor_cline  = Path.home() / ".config" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if cursor_native.parent.exists() or cursor_cline.parent.exists():
+            clients["Cursor"] = _resolve_client_path([cursor_native, cursor_cline])
+
+        # Windsurf — native path first, Cline extension fallback
+        windsurf_native = Path.home() / ".codeium" / "windsurf" / "mcp_config.json"
+        windsurf_cline  = Path.home() / ".config" / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if windsurf_native.parent.exists() or windsurf_cline.parent.exists():
+            clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
     return clients
 
