@@ -259,7 +259,7 @@ def expand_query(query):
 
 def _word_in_text(word, text):
     """True if `word` appears as a whole word in `text` (word-boundary aware)."""
-    return bool(re.search(r'(?<![\w])' + re.escape(word) + r'(?![\w])', text))
+    return bool(re.search(r'(?<!\w)' + re.escape(word) + r'(?!\w)', text))
 
 
 def score_skill(skill, query_lower, query_words, triggers):
