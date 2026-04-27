@@ -47,10 +47,10 @@ AUTH_HEADERS = {
 
 # ── Per-vertical abbreviation maps ────────────────────────────────────────────
 # Expands common shorthand before trigger-phrase matching.
-# These fill gaps not yet covered by the trigger phrase database.
-# Add entries here as gaps are identified; long-term home is the DB.
+# Fallback abbreviation maps used when GET /v1/abbreviations is unavailable.
+# Sprint 6: DB is now the source of truth; these are a safety net only.
 
-_ABBREVS = {
+_ABBREVS_FALLBACK = {
     "law": {
         "mtc":    "motion to compel",
         "rogs":   "interrogatories",
@@ -248,6 +248,11 @@ _ABBREVS = {
 # Default empty map for verticals without specific abbreviations
 _DEFAULT_ABBREVS = {}
 
+# DB-loaded abbreviations (fetched from /v1/abbreviations at startup)
+_abbrevs_db: dict | None = None
+_abbrevs_db_ts: float = 0.0
+_abbrevs_db_product: str | None = None
+
 
 # ── Cache configuration ────────────────────────────────────────────────────────
 CACHE_TTL      = 600   # 10 minutes
@@ -297,6 +302,24 @@ async def load_vertical():
     return _vertical
 
 
+async def load_abbreviations():
+    """
+    Fetch abbreviations for this vertical from GET /v1/abbreviations.
+    Populates _abbrevs_db. Falls back silently to _ABBREVS_FALLBACK if unavailable.
+    Called once at startup after load_vertical().
+    """
+    global _abbrevs_db, _abbrevs_db_ts, _abbrevs_db_product
+    try:
+        data = await api_get("/v1/abbreviations")
+        _abbrevs_db = data.get("abbreviations", {})
+        _abbrevs_db_product = data.get("product_id")
+        _abbrevs_db_ts = time.monotonic()
+    except Exception:
+        # Non-fatal: _ABBREVS_FALLBACK will be used instead
+        _abbrevs_db = None
+    return _abbrevs_db
+
+
 async def get_skills():
     global _skills_cache, _skills_cache_ts, _skills_cache_err_until
     now = time.monotonic()
@@ -340,7 +363,11 @@ async def get_triggers():
 
 def expand_query(query, product_id):
     """Expand vertical-specific abbreviations before matching."""
-    abbrevs = _ABBREVS.get(product_id, _DEFAULT_ABBREVS)
+    # Prefer DB-loaded abbreviations; fall back to hardcoded map
+    if _abbrevs_db is not None:
+        abbrevs = _abbrevs_db
+    else:
+        abbrevs = _ABBREVS_FALLBACK.get(product_id, _DEFAULT_ABBREVS)
     if not abbrevs:
         return query
     words = query.lower().split()
@@ -502,6 +529,7 @@ async def list_tools():
     # Ensure vertical is loaded before advertising tools
     if _vertical is None:
         await load_vertical()
+        await load_abbreviations()
         _rebuild_tools()
     return _tools
 
@@ -525,6 +553,7 @@ async def call_tool(name, arguments):
     # Ensure vertical loaded on first tool call
     if _vertical is None:
         await load_vertical()
+        await load_abbreviations()
         _rebuild_tools()
 
     v          = _vertical or {}
@@ -643,12 +672,16 @@ async def call_tool(name, arguments):
 
 
 async def main():
-    # Load vertical metadata before accepting connections
+    # Load vertical metadata + abbreviations before accepting connections
     await load_vertical()
+    await load_abbreviations()
     _rebuild_tools()
 
     v = _vertical or {}
+    abbrev_count = len(_abbrevs_db) if _abbrevs_db is not None else 0
+    abbrev_src   = "db" if _abbrevs_db is not None else "fallback"
     print(f"✅ {v.get('product_name', 'TasksAI')} MCP Server ready", flush=True)
+    print(f"   Abbreviations: {abbrev_count} loaded from {abbrev_src}", flush=True)
     print(f"   Vertical: {v.get('product_id', 'unknown')} | "
           f"Tools: {v.get('tool_prefix', 'tasksai')}_search / execute / balance / categories",
           flush=True)
