@@ -225,15 +225,35 @@ async def call_tool(name, arguments):
                     scored.append((score, s))
             scored.sort(key=lambda x: -x[0])
             matches = [s for _, s in scored[:5]]
-            if not matches:
-                matches = skills[:5]
 
-            lines = [f"**Top {len(matches)} matching skills for '{arguments.get('query', '')}':**\n"]
+            # Honest zero-result response — never silently serve unrelated skills
+            if not matches:
+                no_match_text = (
+                    f"No skills found matching **'{arguments.get('query', '')}'**.\n\n"
+                    "**Suggestions:**\n"
+                    "- Try different keywords (e.g. 'motion to compel' instead of 'MTC')\n"
+                    "- Use `lawtasksai_categories` to browse all skill categories\n"
+                    "- Ask the user to rephrase their request\n\n"
+                    "**DO NOT call lawtasksai_execute** — no skill has been selected."
+                )
+                return [TextContent(type="text", text=no_match_text)]
+
+            lines = [f"**{len(matches)} skills found for '{arguments.get('query', '')}':**\n"]
             for i, s in enumerate(matches, 1):
                 desc = s.get("description", "")[:100]
                 lines.append(f"{i}. **{s['name']}** (`{s['id']}`)\n   {desc}\n")
+
+            # Explicit workflow enforcement — injected into every search result.
+            # Primary guardrail; the Prompt resource is supplementary only.
             lines.append("---")
-            lines.append("*Present these options to the user and ask which one they'd like to use before calling lawtasksai_execute.*")
+            lines.append(
+                "**\U0001f6d1 REQUIRED — DO NOT SKIP:**\n"
+                "Present the numbered list above to the user EXACTLY as shown. "
+                "Then ask: *\"Which of these best fits your situation? "
+                "(Reply with a number, or describe your task differently and I'll search again.)\"*\n\n"
+                "**DO NOT call `lawtasksai_execute` until the user replies with their choice. "
+                "Each execution costs 1 credit and cannot be undone.**"
+            )
             return [TextContent(type="text", text="\n".join(lines))]
 
         if name == "lawtasksai_execute":
