@@ -74,10 +74,10 @@ If you prefer to configure manually, add this to your MCP client config:
 
 | Tool | Description |
 |------|-------------|
-| `lawtasks_search` | Search 200+ skills by legal topic |
-| `lawtasks_execute` | Get the full expert framework for a skill (costs 1 credit) |
-| `lawtasks_balance` | Check your remaining credit balance |
-| `lawtasks_categories` | Browse skills by practice area |
+| `lawtasksai_search` | Search 200+ skills by legal topic |
+| `lawtasksai_execute` | Get the full expert framework for a skill (costs 1 credit) |
+| `lawtasksai_balance` | Check your remaining credit balance |
+| `lawtasksai_categories` | Browse skills by practice area |
 
 ---
 
