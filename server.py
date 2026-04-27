@@ -13,6 +13,7 @@ or go to your LLM provider if using a cloud AI.
 """
 
 import os
+import time
 import httpx
 from dotenv import load_dotenv
 from mcp.server import Server
@@ -141,15 +142,45 @@ PROMPTS = [
     )
 ]
 
+# Skills cache with TTL and failure isolation.
+# _skills_cache: list of skills (None = never loaded)
+# _skills_cache_ts: epoch time of last successful fetch
+# _skills_cache_error_until: don't retry a failed fetch until this epoch time
+CACHE_TTL = 600          # 10 minutes — refresh after this many seconds
+ERROR_COOLDOWN = 30      # retry a failed API call after 30 seconds
+
 _skills_cache = None
+_skills_cache_ts = 0.0
+_skills_cache_error_until = 0.0
 
 async def get_skills():
-    global _skills_cache
-    if _skills_cache is None:
-        try:
-            _skills_cache = await api_get("/v1/skills")
-        except Exception:
-            _skills_cache = []
+    global _skills_cache, _skills_cache_ts, _skills_cache_error_until
+
+    now = time.monotonic()
+
+    # If cache is populated and still fresh, return it
+    if _skills_cache is not None and (now - _skills_cache_ts) < CACHE_TTL:
+        return _skills_cache
+
+    # If the last fetch failed and we're still in the cooldown window, return
+    # whatever we have (stale data beats empty data)
+    if now < _skills_cache_error_until:
+        return _skills_cache if _skills_cache is not None else []
+
+    # Attempt a fresh fetch
+    try:
+        fresh = await api_get("/v1/skills")
+        _skills_cache = fresh
+        _skills_cache_ts = now
+        _skills_cache_error_until = 0.0   # clear any previous error state
+    except Exception:
+        # Don't overwrite a good cache with an empty list.
+        # Set a cooldown so we don't hammer the API on every call.
+        _skills_cache_error_until = now + ERROR_COOLDOWN
+        # If we have stale data, return it — stale > empty
+        if _skills_cache is None:
+            _skills_cache = []  # only set empty if we've never had data
+
     return _skills_cache
 
 server = Server("LawTasksAI — Legal Research & Drafting")
