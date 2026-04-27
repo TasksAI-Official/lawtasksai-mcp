@@ -205,6 +205,65 @@ def update_config(client_name, config_path, server_path, python_path, license_ke
     print(f"    ✅ Config updated: {config_path}")
 
 
+def verify_installation(license_key):
+    """
+    After config is written, make a live API call to confirm:
+    - License key is valid
+    - Credits are accessible
+    - Skills are available
+
+    Returns True on success, False on failure.
+    """
+    import urllib.request
+    import urllib.error
+
+    API_BASE = "https://api.taskvaultai.com"
+    print()
+    print("  Verifying installation...")
+
+    # Step 1: Check license / credits
+    try:
+        req = urllib.request.Request(
+            f"{API_BASE}/v1/credits/balance",
+            headers={"Authorization": f"Bearer {license_key}"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            import json as _json
+            data = _json.loads(resp.read())
+            credits = data.get("credits_balance", "?")
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            print("  ❌ License key is invalid or expired.")
+            print("     Check your purchase confirmation email or visit lawtasksai.com/account")
+        elif e.code == 402:
+            print("  ⚠️  License key valid but no credits remaining.")
+            print("     Purchase more at: https://lawtasksai.com/#pricing")
+        else:
+            print(f"  ⚠️  Could not verify license (HTTP {e.code}).")
+            print("     Installation may still work — restart your MCP client and try.")
+        return False
+    except Exception as e:
+        print(f"  ⚠️  Could not reach LawTasksAI servers ({type(e).__name__}).")
+        print("     Check your internet connection. Installation files are in place.")
+        return False
+
+    # Step 2: Count available skills
+    try:
+        req = urllib.request.Request(
+            f"{API_BASE}/v1/skills",
+            headers={"Authorization": f"Bearer {license_key}"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            import json as _json
+            skills = _json.loads(resp.read())
+            skill_count = len(skills) if isinstance(skills, list) else "?"
+    except Exception:
+        skill_count = "?"
+
+    print(f"  ✅ License verified — {credits} credits available, {skill_count} skills ready")
+    return True
+
+
 def no_python_fallback():
     """Shown when no MCP clients are detected."""
     print()
@@ -265,6 +324,11 @@ def main():
         except Exception as e:
             print(f"    ⚠️  Warning: could not configure {client_name}: {e}")
 
+    # Post-install verification
+    verified = False
+    if configured:
+        verified = verify_installation(license_key)
+
     print()
     print("  " + "=" * 50)
     print("  ✅ Installation complete!")
@@ -273,13 +337,18 @@ def main():
     if configured:
         print(f"  Configured: {', '.join(configured)}")
         print()
-        print("  Next steps:")
-        print("    1. Restart your MCP client(s)")
-        print("    2. Start asking legal questions!")
-        print()
-        print("  Try asking:")
-        print('    "Search for a motion to compel skill"')
-        print('    "What statute of limitations skills do you have?"')
+        if verified:
+            print("  Next steps:")
+            print("    1. Restart your MCP client(s)")
+            print("    2. Start asking legal questions!")
+            print()
+            print("  Try asking:")
+            print('    "Search for a motion to compel skill"')
+            print('    "What statute of limitations skills do you have?"')
+        else:
+            print("  ⚠️  Verification did not complete — see message above.")
+            print("     Your config files are in place. Once the issue is resolved,")
+            print("     restart your MCP client and try again.")
     print()
     print("  Support: hello@lawtasksai.com")
     print("  Website: https://lawtasksai.com")
