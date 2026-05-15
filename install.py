@@ -23,6 +23,20 @@ from pathlib import Path
 from datetime import datetime
 
 
+def is_interactive_terminal() -> bool:
+    """Return True if stdin is a real terminal (not a double-clicked .py on Mac)."""
+    return sys.stdin.isatty()
+
+
+def pause_if_finder():
+    """
+    If the script was launched by double-clicking in Finder (no real terminal),
+    pause at the end so the window doesn't vanish before the user reads output.
+    """
+    if not is_interactive_terminal():
+        input("\n  Press Enter to close this window... ")
+
+
 def get_python_path():
     """Return full path to python3 so MCP clients can find it regardless of PATH."""
     for candidate in [sys.executable, shutil.which("python3"),
@@ -283,27 +297,27 @@ def no_python_fallback():
     """Shown when no MCP clients are detected."""
     print()
     print("  No supported MCP clients detected on this machine.")
-    print("  Supported clients: Claude Desktop, Cursor, Windsurf")
+    print("  Supported: Claude Desktop, Cursor, Windsurf, Cline (VS Code)")
     print()
     print("  ─────────────────────────────────────────────────")
-    print("  Don't have Python or a supported MCP client?")
+    print("  If you have Claude Desktop installed, make sure it has")
+    print("  been opened at least once so its config folder exists.")
+    print("  Then run this installer again.")
     print()
-    print("  You can use LawTasksAI without any installation:")
-    print("  → Web app:   https://lawtasksai.com")
-    print("  → OpenClaw:  Works out of the box, no Python needed.")
-    print("               See: https://lawtasksai.com/getting-started.html")
-    print()
-    print("  For manual MCP setup instructions:")
-    print("  → https://lawtasksai.com/getting-started.html")
+    print("  Don't have a supported MCP client yet?")
+    print("  → Download Claude Desktop (free): https://claude.ai/download")
+    print("  → Or use OpenClaw (no install needed for the skill):")
+    print("               https://lawtasksai.com/getting-started")
     print("  ─────────────────────────────────────────────────")
     print()
     print("  Support: hello@lawtasksai.com")
+    pause_if_finder()
 
 
 def main():
     print()
     print("  " + "=" * 50)
-    print("  LawTasksAI MCP Installer  v1.4.0")
+    print("  LawTasksAI MCP Installer  v1.5.0")
     print("  " + "=" * 50)
     print()
 
@@ -321,7 +335,6 @@ def main():
     print("    2. Configure LawTasksAI in each detected client")
     print("       (existing configs are backed up first)")
     print()
-    input("  Press Enter to continue (or Ctrl+C to cancel)... ")
 
     license_key = get_license_key()
     server_path = get_server_path()
@@ -368,6 +381,7 @@ def main():
     print("  Support: hello@lawtasksai.com")
     print("  Website: https://lawtasksai.com")
     print()
+    pause_if_finder()
 
 
 if __name__ == "__main__":
