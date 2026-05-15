@@ -110,6 +110,11 @@ def get_mcp_clients():
            claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
 
+        # Claude Code (CLI) — ~/.claude.json
+        claude_code_path = Path.home() / ".claude.json"
+        if claude_code_path.exists() or (Path.home() / ".claude").is_dir():
+            clients["Claude Code"] = claude_code_path
+
         # Cursor — native path first, Cline extension fallback
         cursor_native  = Path.home() / ".cursor" / "mcp.json"
         cursor_cline   = Path.home() / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
@@ -140,6 +145,11 @@ def get_mcp_clients():
         if claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
 
+        # Claude Code (CLI) — ~/.claude.json
+        claude_code_path = Path.home() / ".claude.json"
+        if claude_code_path.exists() or (Path.home() / ".claude").is_dir():
+            clients["Claude Code"] = claude_code_path
+
         # Cursor — native path first, Cline extension fallback
         cursor_native = Path(appdata) / "Cursor" / "User" / "globalStorage" / "cursor-mcp" / "mcp.json"
         cursor_cline  = Path(appdata) / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
@@ -162,6 +172,11 @@ def get_mcp_clients():
         claude_path = Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
         if claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
+
+        # Claude Code (CLI) — ~/.claude.json
+        claude_code_path = Path.home() / ".claude.json"
+        if claude_code_path.exists() or (Path.home() / ".claude").is_dir():
+            clients["Claude Code"] = claude_code_path
 
         # Cursor — native path first, Cline extension fallback
         cursor_native = Path.home() / ".cursor" / "mcp.json"
@@ -317,7 +332,7 @@ def no_python_fallback():
 def main():
     print()
     print("  " + "=" * 50)
-    print("  LawTasksAI MCP Installer  v1.5.0")
+    print("  LawTasksAI MCP Installer  v1.6.0")
     print("  " + "=" * 50)
     print()
 
