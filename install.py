@@ -56,9 +56,9 @@ def get_license_key():
 
 def check_python_version():
     """Warn if Python version is too old."""
-    if sys.version_info < (3, 8):
+    if sys.version_info < (3, 10):
         print(f"  ⚠️  Python {sys.version_info.major}.{sys.version_info.minor} detected.")
-        print("  LawTasksAI requires Python 3.8 or later.")
+        print("  LawTasksAI requires Python 3.10 or later.")
         print("  Download Python at: https://python.org/downloads")
         sys.exit(1)
 
@@ -112,6 +112,11 @@ def get_mcp_clients():
            windsurf_native.parent.exists() or windsurf_cline.parent.exists():
             clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
+        # Cline (standalone VS Code extension)
+        cline_vscode = Path.home() / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if cline_vscode.parent.exists() and "Cursor" not in clients and "Windsurf" not in clients:
+            clients["Cline (VS Code)"] = cline_vscode
+
     elif system == "Windows":
         appdata = os.environ.get("APPDATA", "")
         local   = os.environ.get("LOCALAPPDATA", "")
@@ -133,6 +138,11 @@ def get_mcp_clients():
         if windsurf_native.parent.exists() or windsurf_cline.parent.exists():
             clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
+        # Cline (standalone VS Code extension)
+        cline_vscode = Path(appdata) / "Code" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if cline_vscode.parent.exists() and "Cursor" not in clients and "Windsurf" not in clients:
+            clients["Cline (VS Code)"] = cline_vscode
+
     else:
         # Linux
         claude_path = Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
@@ -150,6 +160,11 @@ def get_mcp_clients():
         windsurf_cline  = Path.home() / ".config" / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if windsurf_native.parent.exists() or windsurf_cline.parent.exists():
             clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
+
+        # Cline (standalone VS Code extension)
+        cline_vscode = Path.home() / ".config" / "Code" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        if cline_vscode.parent.exists() and "Cursor" not in clients and "Windsurf" not in clients:
+            clients["Cline (VS Code)"] = cline_vscode
 
     return clients
 
