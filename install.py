@@ -1,103 +1,262 @@
 #!/usr/bin/env python3
 """
-LawTasksAI MCP Installer
+TasksAI MCP Installer — Universal Multi-Vertical
 
-Detects and configures LawTasksAI for all supported MCP clients:
+Installs the TasksAI MCP server for all supported MCP clients:
   - Claude Desktop
+  - Claude Code (CLI)
   - Cursor
   - Windsurf
+  - Cline (VS Code extension)
 
-Backs up existing configs before making any changes.
+This installer:
+  1. Copies the MCP server binary to a permanent OS location
+  2. Saves your license key there
+  3. Configures all detected MCP clients to use it
+  4. Verifies your license is valid
 
-Usage:
+After installation, you can delete this installer.
+The server binary in the permanent location does the actual work.
+
+Usage (Python / development mode):
     python3 install.py
+
+In production, users run the .exe / binary directly — no Python needed.
 """
 
 import json
 import os
 import platform
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
 
+# ── Vertical configuration ─────────────────────────────────────────────────────
+# These values are baked in at build time for each vertical's installer.
+# In dev/source mode, defaults to LawTasksAI.
+
+PRODUCT_ID     = os.getenv("TASKSAI_PRODUCT_ID",   "law")
+PRODUCT_NAME   = os.getenv("TASKSAI_PRODUCT_NAME",  "LawTasksAI")
+MCP_KEY_NAME   = os.getenv("TASKSAI_MCP_KEY",       "lawtasksai")     # key in MCP JSON configs
+ENV_VAR_NAME   = os.getenv("TASKSAI_ENV_VAR",       "LAWTASKSAI_LICENSE_KEY")
+LICENSE_PREFIX = os.getenv("TASKSAI_LIC_PREFIX",    "lt_")            # e.g. "rt_" for realtor
+SUPPORT_EMAIL  = os.getenv("TASKSAI_SUPPORT_EMAIL", "hello@lawtasksai.com")
+DOMAIN         = os.getenv("TASKSAI_DOMAIN",        "lawtasksai.com")
+APP_FOLDER     = os.getenv("TASKSAI_APP_FOLDER",    "LawTasksAI")     # OS install dir name
+SERVER_BIN     = os.getenv("TASKSAI_SERVER_BIN",    "lawtasksai-server")  # binary name (no ext)
+
+INSTALLER_VERSION = "2.0.0"
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+def is_bundled() -> bool:
+    """True when running as a PyInstaller .exe / binary."""
+    return getattr(sys, "frozen", False)
+
 
 def is_interactive_terminal() -> bool:
-    """Return True if stdin is a real terminal (not a double-clicked .py on Mac)."""
+    """True if stdin is a real terminal (not a double-clicked file)."""
     return sys.stdin.isatty()
 
 
 def pause_if_finder():
     """
-    If the script was launched by double-clicking in Finder (no real terminal),
-    pause at the end so the window doesn't vanish before the user reads output.
+    Keep the window open when double-clicked from Finder / File Explorer,
+    so the user can read the output before the window closes.
     """
     if not is_interactive_terminal():
         input("\n  Press Enter to close this window... ")
 
 
-def get_python_path():
-    """Return full path to python3 so MCP clients can find it regardless of PATH."""
-    for candidate in [sys.executable, shutil.which("python3"),
-                      "/opt/homebrew/bin/python3", "/usr/bin/python3",
-                      "/usr/local/bin/python3"]:
-        if candidate and Path(candidate).exists():
+# ── Install directory ──────────────────────────────────────────────────────────
+
+def get_install_dir() -> Path:
+    """
+    Return the permanent OS-specific install directory for this vertical.
+
+    Windows : %LOCALAPPDATA%\\{APP_FOLDER}\\
+    Mac     : ~/Library/Application Support/{APP_FOLDER}/
+    Linux   : ~/.local/share/{APP_FOLDER}/
+    """
+    system = platform.system()
+    if system == "Windows":
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+    elif system == "Darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path.home() / ".local" / "share"
+    return base / APP_FOLDER
+
+
+def get_server_binary_name() -> str:
+    """Return the platform-correct server binary filename."""
+    if platform.system() == "Windows":
+        return f"{SERVER_BIN}.exe"
+    return SERVER_BIN
+
+
+def get_server_install_path() -> Path:
+    """Full path to the server binary in the install directory."""
+    return get_install_dir() / get_server_binary_name()
+
+
+def get_env_install_path() -> Path:
+    """Full path to the .env file in the install directory."""
+    return get_install_dir() / ".env"
+
+
+# ── Bundled server binary ──────────────────────────────────────────────────────
+
+def get_bundled_server_path() -> Path | None:
+    """
+    When running as a PyInstaller bundle, the server binary is extracted
+    to sys._MEIPASS (the temp unpack dir). Return its path, or None if not found.
+    In dev/source mode, look for the binary next to this script.
+    """
+    bin_name = get_server_binary_name()
+
+    if is_bundled():
+        meipass = Path(getattr(sys, "_MEIPASS", ""))
+        candidate = meipass / bin_name
+        if candidate.exists():
             return candidate
-    return sys.executable
+        # Fallback: look in same dir as the installer executable
+        candidate = Path(sys.executable).parent / bin_name
+        if candidate.exists():
+            return candidate
+    else:
+        # Dev mode: look next to install.py, or in dist/
+        for candidate in [
+            Path(__file__).parent / bin_name,
+            Path(__file__).parent / "dist" / bin_name,
+        ]:
+            if candidate.exists():
+                return candidate
+
+    return None
 
 
-def get_server_path():
-    return str(Path(__file__).parent.resolve() / "server.py")
+def install_server_binary(install_dir: Path) -> Path:
+    """
+    Copy the server binary from the bundle / source tree to the install dir.
+    Returns the final installed path.
+    Raises RuntimeError if the binary can't be found.
+    """
+    install_dir.mkdir(parents=True, exist_ok=True)
+    dest = install_dir / get_server_binary_name()
+
+    bundled = get_bundled_server_path()
+    if bundled:
+        shutil.copy2(str(bundled), str(dest))
+        # Ensure executable on Unix
+        if platform.system() != "Windows":
+            dest.chmod(0o755)
+        return dest
+
+    # Dev/source mode fallback: we ARE server.py, use Python to run it
+    # (This path is only hit when building/testing without PyInstaller)
+    server_py = Path(__file__).parent / "server.py"
+    if server_py.exists():
+        dest_py = install_dir / "server.py"
+        shutil.copy2(str(server_py), str(dest_py))
+        return dest_py
+
+    raise RuntimeError(
+        f"Could not find server binary '{get_server_binary_name()}'. "
+        "Please re-download the installer from the website."
+    )
 
 
-def get_license_key():
-    env_path = Path(__file__).parent / ".env"
+# ── License key ────────────────────────────────────────────────────────────────
+
+def get_license_key(install_dir: Path) -> str:
+    """
+    Read license key from the install dir .env (upgrade/reinstall path),
+    then from the installer's own directory, then prompt the user.
+    """
+    # 1. Already installed — use existing key
+    env_path = install_dir / ".env"
     if env_path.exists():
-        with open(env_path) as f:
-            for line in f:
-                if line.startswith("LAWTASKSAI_LICENSE_KEY="):
-                    key = line.split("=", 1)[1].strip()
-                    if key and key != "YOUR_KEY_HERE":
-                        return key
-    print("\n  Enter your LawTasksAI license key (starts with lt_):")
+        key = _read_key_from_env(env_path)
+        if key:
+            print(f"  Found existing license key in install directory.")
+            return key
+
+    # 2. .env next to installer (downloaded zip workflow)
+    local_env = Path(__file__).parent / ".env"
+    if local_env.exists():
+        key = _read_key_from_env(local_env)
+        if key:
+            return key
+
+    # 3. Prompt
+    print(f"\n  Enter your {PRODUCT_NAME} license key (starts with {LICENSE_PREFIX}):")
     key = input("   > ").strip()
     if not key:
-        print("  No license key provided. Check your purchase confirmation email.")
+        print(f"  No license key provided.")
+        print(f"  Check your purchase confirmation email from {SUPPORT_EMAIL}")
         sys.exit(1)
+    if not key.startswith(LICENSE_PREFIX):
+        print(f"  ⚠️  That doesn't look like a {PRODUCT_NAME} key (expected prefix: {LICENSE_PREFIX}).")
+        print(f"     Check your purchase confirmation email or contact {SUPPORT_EMAIL}")
+        # Don't exit — let verification catch it
     return key
 
 
-def check_python_version():
-    """Warn if Python version is too old."""
-    if sys.version_info < (3, 10):
-        print(f"  ⚠️  Python {sys.version_info.major}.{sys.version_info.minor} detected.")
-        print("  LawTasksAI requires Python 3.10 or later.")
-        print("  Download Python at: https://python.org/downloads")
-        sys.exit(1)
+def _read_key_from_env(env_path: Path) -> str | None:
+    """Extract the license key from a .env file. Returns None if not found."""
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            for var in (ENV_VAR_NAME, "TASKSAI_LICENSE_KEY", "LAWTASKSAI_LICENSE_KEY"):
+                if line.startswith(f"{var}="):
+                    key = line.split("=", 1)[1].strip()
+                    if key and key not in ("YOUR_KEY_HERE", ""):
+                        return key
+    return None
 
 
-def _resolve_client_path(candidates):
+def save_license_key(install_dir: Path, license_key: str):
+    """Write the license key to .env in the permanent install directory."""
+    install_dir.mkdir(parents=True, exist_ok=True)
+    env_path = install_dir / ".env"
+    # Preserve any existing entries, just update/add the key
+    lines = []
+    key_written = False
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                if line.startswith(f"{ENV_VAR_NAME}=") or line.startswith("TASKSAI_LICENSE_KEY="):
+                    lines.append(f"{ENV_VAR_NAME}={license_key}\n")
+                    key_written = True
+                else:
+                    lines.append(line)
+    if not key_written:
+        lines.append(f"{ENV_VAR_NAME}={license_key}\n")
+        lines.append(f"TASKSAI_LICENSE_KEY={license_key}\n")
+
+    with open(env_path, "w") as f:
+        f.writelines(lines)
+
+
+# ── MCP client detection ───────────────────────────────────────────────────────
+
+def _resolve_client_path(candidates: list[Path]) -> Path:
     """
-    Given a list of candidate config paths (in priority order), return the
-    first one whose parent directory already exists, or the first candidate
-    as the default write target (installer will create the dir).
+    Return the first candidate whose parent directory exists,
+    or the first candidate as default (installer will create it).
     """
     for path in candidates:
         if path.parent.exists():
             return path
-    # No existing parent found — return the first (highest-priority) path.
-    # update_config() will mkdir -p the parent before writing.
     return candidates[0]
 
 
-def get_mcp_clients():
+def get_mcp_clients() -> dict[str, Path]:
     """
-    Return dict of {client_name: config_path} for all installed MCP clients.
-
-    For Cursor and Windsurf we check their native MCP config paths first.
-    If those don't exist, we fall back to the Cline extension path so users
-    who run Cursor/Windsurf via the Cline plugin are also covered.
+    Detect installed MCP clients and return {client_name: config_path}.
+    Checks Claude Desktop, Claude Code, Cursor, Windsurf, and Cline (VS Code).
     """
     system = platform.system()
     clients = {}
@@ -110,29 +269,32 @@ def get_mcp_clients():
            claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
 
-        # Claude Code (CLI) — ~/.claude.json
+        # Claude Code CLI (~/.claude.json)
         claude_code_path = Path.home() / ".claude.json"
         if claude_code_path.exists() or (Path.home() / ".claude").is_dir():
             clients["Claude Code"] = claude_code_path
 
-        # Cursor — native path first, Cline extension fallback
-        cursor_native  = Path.home() / ".cursor" / "mcp.json"
-        cursor_cline   = Path.home() / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        # Cursor
+        cursor_native = Path.home() / ".cursor" / "mcp.json"
+        cursor_cline  = Path.home() / "Library" / "Application Support" / "Cursor" / "User" / \
+                        "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if (Path.home() / "Applications" / "Cursor.app").exists() or \
            Path("/Applications/Cursor.app").exists() or \
            cursor_native.parent.exists() or cursor_cline.parent.exists():
             clients["Cursor"] = _resolve_client_path([cursor_native, cursor_cline])
 
-        # Windsurf — native path first, Cline extension fallback
+        # Windsurf
         windsurf_native = Path.home() / ".codeium" / "windsurf" / "mcp_config.json"
-        windsurf_cline  = Path.home() / "Library" / "Application Support" / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        windsurf_cline  = Path.home() / "Library" / "Application Support" / "Windsurf" / "User" / \
+                          "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if (Path.home() / "Applications" / "Windsurf.app").exists() or \
            Path("/Applications/Windsurf.app").exists() or \
            windsurf_native.parent.exists() or windsurf_cline.parent.exists():
             clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
-        # Cline (standalone VS Code extension)
-        cline_vscode = Path.home() / "Library" / "Application Support" / "Code" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        # Cline standalone (VS Code)
+        cline_vscode = Path.home() / "Library" / "Application Support" / "Code" / "User" / \
+                       "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if cline_vscode.parent.exists() and "Cursor" not in clients and "Windsurf" not in clients:
             clients["Cline (VS Code)"] = cline_vscode
 
@@ -145,83 +307,104 @@ def get_mcp_clients():
         if claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
 
-        # Claude Code (CLI) — ~/.claude.json
+        # Claude Code CLI
         claude_code_path = Path.home() / ".claude.json"
         if claude_code_path.exists() or (Path.home() / ".claude").is_dir():
             clients["Claude Code"] = claude_code_path
 
-        # Cursor — native path first, Cline extension fallback
+        # Cursor
         cursor_native = Path(appdata) / "Cursor" / "User" / "globalStorage" / "cursor-mcp" / "mcp.json"
-        cursor_cline  = Path(appdata) / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        cursor_cline  = Path(appdata) / "Cursor" / "User" / "globalStorage" / \
+                        "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if cursor_native.parent.exists() or cursor_cline.parent.exists():
             clients["Cursor"] = _resolve_client_path([cursor_native, cursor_cline])
 
-        # Windsurf — native path first, Cline extension fallback
-        windsurf_native = Path(local) / "Windsurf" / "User" / "globalStorage" / "windsurf-mcp" / "mcp_config.json"
-        windsurf_cline  = Path(local) / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        # Windsurf
+        windsurf_native = Path(local) / "Windsurf" / "User" / "globalStorage" / \
+                          "windsurf-mcp" / "mcp_config.json"
+        windsurf_cline  = Path(local) / "Windsurf" / "User" / "globalStorage" / \
+                          "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if windsurf_native.parent.exists() or windsurf_cline.parent.exists():
             clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
-        # Cline (standalone VS Code extension)
-        cline_vscode = Path(appdata) / "Code" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        # Cline standalone (VS Code)
+        cline_vscode = Path(appdata) / "Code" / "User" / "globalStorage" / \
+                       "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if cline_vscode.parent.exists() and "Cursor" not in clients and "Windsurf" not in clients:
             clients["Cline (VS Code)"] = cline_vscode
 
-    else:
-        # Linux
+    else:  # Linux
+        # Claude Desktop
         claude_path = Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
         if claude_path.parent.exists():
             clients["Claude Desktop"] = claude_path
 
-        # Claude Code (CLI) — ~/.claude.json
+        # Claude Code CLI
         claude_code_path = Path.home() / ".claude.json"
         if claude_code_path.exists() or (Path.home() / ".claude").is_dir():
             clients["Claude Code"] = claude_code_path
 
-        # Cursor — native path first, Cline extension fallback
+        # Cursor
         cursor_native = Path.home() / ".cursor" / "mcp.json"
-        cursor_cline  = Path.home() / ".config" / "Cursor" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        cursor_cline  = Path.home() / ".config" / "Cursor" / "User" / "globalStorage" / \
+                        "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if cursor_native.parent.exists() or cursor_cline.parent.exists():
             clients["Cursor"] = _resolve_client_path([cursor_native, cursor_cline])
 
-        # Windsurf — native path first, Cline extension fallback
+        # Windsurf
         windsurf_native = Path.home() / ".codeium" / "windsurf" / "mcp_config.json"
-        windsurf_cline  = Path.home() / ".config" / "Windsurf" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        windsurf_cline  = Path.home() / ".config" / "Windsurf" / "User" / "globalStorage" / \
+                          "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if windsurf_native.parent.exists() or windsurf_cline.parent.exists():
             clients["Windsurf"] = _resolve_client_path([windsurf_native, windsurf_cline])
 
-        # Cline (standalone VS Code extension)
-        cline_vscode = Path.home() / ".config" / "Code" / "User" / "globalStorage" / "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
+        # Cline standalone (VS Code)
+        cline_vscode = Path.home() / ".config" / "Code" / "User" / "globalStorage" / \
+                       "saoudrizwan.claude-dev" / "settings" / "cline_mcp_settings.json"
         if cline_vscode.parent.exists() and "Cursor" not in clients and "Windsurf" not in clients:
             clients["Cline (VS Code)"] = cline_vscode
 
     return clients
 
 
-def install_dependencies():
-    req_path = Path(__file__).parent / "requirements.txt"
-    if req_path.exists():
-        print("\n  Installing required packages...")
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "-q", "-r", str(req_path)],
-            capture_output=True, text=True
-        )
-        # Handle externally-managed Python environments (e.g. Homebrew Python on macOS)
-        if result.returncode != 0 and "externally-managed-environment" in result.stderr:
-            result = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "-q", "--break-system-packages", "-r", str(req_path)],
-                capture_output=True, text=True
-            )
-        if result.returncode != 0:
-            print("  ⚠️  Could not install packages automatically.")
-            print("  Run manually: pip3 install mcp httpx python-dotenv")
-        else:
-            print("  ✅ Packages installed.")
+# ── MCP config writing ─────────────────────────────────────────────────────────
+
+def _get_mcp_entry(server_path: Path, license_key: str) -> dict:
+    """
+    Build the MCP server config entry.
+
+    For a compiled binary (.exe or standalone binary): no Python needed.
+    For a .py file (dev/source mode): use python3 as the command.
+    """
+    path_str = str(server_path)
+
+    if path_str.endswith(".py"):
+        # Dev/source mode — need Python
+        python = sys.executable
+        return {
+            "command": python,
+            "args": [path_str],
+            "env": {
+                ENV_VAR_NAME: license_key,
+                "TASKSAI_LICENSE_KEY": license_key,
+            }
+        }
+    else:
+        # Compiled binary — no Python needed
+        return {
+            "command": path_str,
+            "env": {
+                ENV_VAR_NAME: license_key,
+                "TASKSAI_LICENSE_KEY": license_key,
+            }
+        }
 
 
-def update_config(client_name, config_path, server_path, python_path, license_key):
+def update_config(client_name: str, config_path: Path, server_path: Path, license_key: str):
+    """Write the MCP server entry into a client's config file."""
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config = {}
+
     if config_path.exists():
         backup_path = config_path.with_suffix(
             f".backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
@@ -238,34 +421,27 @@ def update_config(client_name, config_path, server_path, python_path, license_ke
     if "mcpServers" not in config:
         config["mcpServers"] = {}
 
-    config["mcpServers"]["lawtasksai"] = {
-        "command": python_path,
-        "args": [server_path],
-        "env": {"LAWTASKSAI_LICENSE_KEY": license_key}
-    }
+    config["mcpServers"][MCP_KEY_NAME] = _get_mcp_entry(server_path, license_key)
 
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
     print(f"    ✅ Config updated: {config_path}")
 
 
-def verify_installation(license_key):
-    """
-    After config is written, make a live API call to confirm:
-    - License key is valid
-    - Credits are accessible
-    - Skills are available
+# ── Post-install verification ──────────────────────────────────────────────────
 
-    Returns True on success, False on failure.
+def verify_installation(license_key: str) -> bool:
+    """
+    Make a live API call to confirm the license is valid and credits are accessible.
+    Uses only stdlib (no httpx) so it works in the bundled .exe without extras.
     """
     import urllib.request
     import urllib.error
 
     API_BASE = "https://api.taskvaultai.com"
     print()
-    print("  Verifying installation...")
+    print("  Verifying license...")
 
-    # Step 1: Check license / credits
     try:
         req = urllib.request.Request(
             f"{API_BASE}/v1/credits/balance",
@@ -278,20 +454,19 @@ def verify_installation(license_key):
     except urllib.error.HTTPError as e:
         if e.code == 401:
             print("  ❌ License key is invalid or expired.")
-            print("     Check your purchase confirmation email or visit lawtasksai.com/account")
+            print(f"     Check your purchase email or visit {DOMAIN}/account")
         elif e.code == 402:
             print("  ⚠️  License key valid but no credits remaining.")
-            print("     Purchase more at: https://lawtasksai.com/#pricing")
+            print(f"     Purchase more at: https://{DOMAIN}/#pricing")
         else:
             print(f"  ⚠️  Could not verify license (HTTP {e.code}).")
             print("     Installation may still work — restart your MCP client and try.")
         return False
     except Exception as e:
-        print(f"  ⚠️  Could not reach LawTasksAI servers ({type(e).__name__}).")
+        print(f"  ⚠️  Could not reach {PRODUCT_NAME} servers ({type(e).__name__}).")
         print("     Check your internet connection. Installation files are in place.")
         return False
 
-    # Step 2: Count available skills
     try:
         req = urllib.request.Request(
             f"{API_BASE}/v1/skills",
@@ -308,93 +483,125 @@ def verify_installation(license_key):
     return True
 
 
-def no_python_fallback():
-    """Shown when no MCP clients are detected."""
+# ── No-client fallback ─────────────────────────────────────────────────────────
+
+def no_client_found():
     print()
     print("  No supported MCP clients detected on this machine.")
-    print("  Supported: Claude Desktop, Cursor, Windsurf, Cline (VS Code)")
+    print("  Supported: Claude Desktop, Claude Code, Cursor, Windsurf, Cline (VS Code)")
     print()
     print("  ─────────────────────────────────────────────────")
-    print("  If you have Claude Desktop installed, make sure it has")
-    print("  been opened at least once so its config folder exists.")
-    print("  Then run this installer again.")
+    print("  If you have Claude Desktop installed, open it once so its")
+    print("  config folder is created, then run this installer again.")
     print()
     print("  Don't have a supported MCP client yet?")
     print("  → Download Claude Desktop (free): https://claude.ai/download")
-    print("  → Or use OpenClaw (no install needed for the skill):")
-    print("               https://lawtasksai.com/getting-started")
+    print(f"  → Or contact support: {SUPPORT_EMAIL}")
     print("  ─────────────────────────────────────────────────")
     print()
-    print("  Support: hello@lawtasksai.com")
     pause_if_finder()
 
 
+# ── Main ───────────────────────────────────────────────────────────────────────
+
 def main():
     print()
-    print("  " + "=" * 50)
-    print("  LawTasksAI MCP Installer  v1.6.0")
-    print("  " + "=" * 50)
+    print("  " + "=" * 54)
+    print(f"  {PRODUCT_NAME} MCP Installer  v{INSTALLER_VERSION}")
+    print("  " + "=" * 54)
     print()
 
-    check_python_version()
-
+    # Detect MCP clients
     clients = get_mcp_clients()
     if not clients:
-        no_python_fallback()
+        no_client_found()
         sys.exit(0)
 
     print(f"  Detected MCP client(s): {', '.join(clients.keys())}")
     print()
+
+    install_dir = get_install_dir()
+    print(f"  Install location: {install_dir}")
+    print()
     print("  This installer will:")
-    print("    1. Install required Python packages")
-    print("    2. Configure LawTasksAI in each detected client")
+    print(f"    1. Copy the {PRODUCT_NAME} MCP server to the install location")
+    print("    2. Save your license key there")
+    print("    3. Configure each detected MCP client")
     print("       (existing configs are backed up first)")
     print()
 
-    license_key = get_license_key()
-    server_path = get_server_path()
-    python_path = get_python_path()
+    # Get license key
+    license_key = get_license_key(install_dir)
 
-    install_dependencies()
+    # Install server binary to permanent location
+    print(f"  Installing {PRODUCT_NAME} server...")
+    try:
+        server_path = install_server_binary(install_dir)
+        print(f"  ✅ Server installed: {server_path}")
+    except RuntimeError as e:
+        print(f"  ❌ Could not install server: {e}")
+        pause_if_finder()
+        sys.exit(1)
 
+    # Save license key to install dir
+    save_license_key(install_dir, license_key)
+    print(f"  ✅ License key saved.")
+
+    # Configure all detected MCP clients
     print()
     configured = []
     for client_name, config_path in clients.items():
         print(f"  Configuring {client_name}...")
         try:
-            update_config(client_name, config_path, server_path, python_path, license_key)
+            update_config(client_name, config_path, server_path, license_key)
             configured.append(client_name)
         except Exception as e:
-            print(f"    ⚠️  Warning: could not configure {client_name}: {e}")
+            print(f"    ⚠️  Could not configure {client_name}: {e}")
 
-    # Post-install verification
+    # Verify license
     verified = False
     if configured:
         verified = verify_installation(license_key)
 
+    # Done
     print()
-    print("  " + "=" * 50)
+    print("  " + "=" * 54)
     print("  ✅ Installation complete!")
-    print("  " + "=" * 50)
+    print("  " + "=" * 54)
     print()
+
     if configured:
         print(f"  Configured: {', '.join(configured)}")
         print()
         if verified:
             print("  Next steps:")
             print("    1. Restart your MCP client(s)")
-            print("    2. Start asking legal questions!")
+            print(f"    2. Start using {PRODUCT_NAME} skills!")
             print()
-            print("  Try asking:")
-            print('    "Search for a motion to compel skill"')
-            print('    "What statute of limitations skills do you have?"')
+            print("  Try asking Claude:")
+            if PRODUCT_ID == "law":
+                print('    "Search for a motion to compel skill"')
+                print('    "What statute of limitations skills do you have?"')
+            elif PRODUCT_ID == "realtor":
+                print('    "Search for a CMA report skill"')
+                print('    "What listing skills do you have?"')
+            elif PRODUCT_ID == "farmer":
+                print('    "Search for a USDA application skill"')
+                print('    "What crop planning skills do you have?"')
+            else:
+                print(f'    "Search for a {PRODUCT_NAME} skill for [your task]"')
+                print(f'    "What categories of {PRODUCT_NAME} skills are available?"')
         else:
             print("  ⚠️  Verification did not complete — see message above.")
-            print("     Your config files are in place. Once the issue is resolved,")
-            print("     restart your MCP client and try again.")
+            print("     Your config files are in place.")
+            print("     Once resolved, restart your MCP client and try again.")
+
     print()
-    print("  Support: hello@lawtasksai.com")
-    print("  Website: https://lawtasksai.com")
+    print(f"  ℹ️  You can now delete this installer — it has done its job.")
+    print(f"     The server is permanently installed at: {install_dir}")
+    print()
+    print(f"  Support: {SUPPORT_EMAIL}")
+    print(f"  Website: https://{DOMAIN}")
     print()
     pause_if_finder()
 

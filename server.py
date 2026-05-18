@@ -27,7 +27,52 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent, Prompt, PromptMessage, PromptArgument
 from mcp.types import GetPromptResult
 
-load_dotenv()
+# ── .env resolution ──────────────────────────────────────────────────────────
+# When running as a compiled binary (PyInstaller), the .env lives in the
+# permanent install directory, not next to the executable.
+# Search order: install dir → script/exe dir → cwd
+
+def _find_dotenv() -> str | None:
+    """Return path to .env or None. Checks install dir first."""
+    system = platform.system() if hasattr(os, 'name') else ''
+    import platform as _plat
+    system = _plat.system()
+
+    # Determine app folder name from this binary's parent dir name,
+    # or fall back to checking all known vertical install dirs.
+    home = Path.home()
+    if system == "Windows":
+        local = Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local"))
+        search_bases = [local]
+    elif system == "Darwin":
+        search_bases = [home / "Library" / "Application Support"]
+    else:
+        search_bases = [home / ".local" / "share"]
+
+    # Check parent of the running binary first (most specific)
+    exe_dir = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).parent
+    candidate = exe_dir / ".env"
+    if candidate.exists():
+        return str(candidate)
+
+    # Search known TasksAI install dirs under the base
+    for base in search_bases:
+        if not base.exists():
+            continue
+        for child in base.iterdir():
+            if child.is_dir() and "tasksai" in child.name.lower():
+                candidate = child / ".env"
+                if candidate.exists():
+                    return str(candidate)
+
+    return None
+
+
+_dotenv_path = _find_dotenv()
+if _dotenv_path:
+    load_dotenv(_dotenv_path)
+else:
+    load_dotenv()  # fallback: search cwd and parent dirs
 
 API_BASE    = os.getenv("TASKSAI_API_BASE", os.getenv("LAWTASKSAI_API_BASE", "https://api.taskvaultai.com"))
 LICENSE_KEY = os.getenv("TASKSAI_LICENSE_KEY", os.getenv("LAWTASKSAI_LICENSE_KEY", ""))

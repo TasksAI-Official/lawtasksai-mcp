@@ -1,0 +1,279 @@
+name: Build & Release Installers
+
+# Triggers on version tags: git tag v2.0.0 && git push --tags
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Build matrix — add verticals here as they go live
+# Each entry produces: {ProductName}-Setup.{exe|bin} + {product_id}-server.{exe|bin}
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ── Windows builds ──────────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - product_id: law
+            product_name: LawTasksAI
+            mcp_key: lawtasksai
+            env_var: LAWTASKSAI_LICENSE_KEY
+            lic_prefix: "lt_"
+            support_email: hello@lawtasksai.com
+            domain: lawtasksai.com
+            app_folder: LawTasksAI
+            server_bin: lawtasksai-server
+
+          - product_id: realtor
+            product_name: RealtorTasksAI
+            mcp_key: realtortasksai
+            env_var: REALTORTASKSAI_LICENSE_KEY
+            lic_prefix: "rt_"
+            support_email: hello@realtortasksai.com
+            domain: realtortasksai.com
+            app_folder: RealtorTasksAI
+            server_bin: realtortasksai-server
+
+          - product_id: farmer
+            product_name: FarmerTasksAI
+            mcp_key: farmertasksai
+            env_var: FARMERTASKSAI_LICENSE_KEY
+            lic_prefix: "ft_"
+            support_email: hello@farmertasksai.com
+            domain: farmertasksai.com
+            app_folder: FarmerTasksAI
+            server_bin: farmertasksai-server
+
+          - product_id: teacher
+            product_name: TeacherTasksAI
+            mcp_key: teachertasksai
+            env_var: TEACHERTASKSAI_LICENSE_KEY
+            lic_prefix: "tt_"
+            support_email: hello@teachertasksai.com
+            domain: teachertasksai.com
+            app_folder: TeacherTasksAI
+            server_bin: teachertasksai-server
+
+          - product_id: therapist
+            product_name: TherapistTasksAI
+            mcp_key: therapisttasksai
+            env_var: THERAPISTTASKSAI_LICENSE_KEY
+            lic_prefix: "th_"
+            support_email: hello@therapisttasksai.com
+            domain: therapisttasksai.com
+            app_folder: TherapistTasksAI
+            server_bin: therapisttasksai-server
+
+          - product_id: marketing
+            product_name: MarketingTasksAI
+            mcp_key: marketingtasksai
+            env_var: MARKETINGTASKSAI_LICENSE_KEY
+            lic_prefix: "mt_"
+            support_email: hello@marketingtasksai.com
+            domain: marketingtasksai.com
+            app_folder: MarketingTasksAI
+            server_bin: marketingtasksai-server
+
+          - product_id: contractor
+            product_name: ContractorTasksAI
+            mcp_key: contractortasksai
+            env_var: CONTRACTORTASKSAI_LICENSE_KEY
+            lic_prefix: "ct_"
+            support_email: hello@contractortasksai.com
+            domain: contractortasksai.com
+            app_folder: ContractorTasksAI
+            server_bin: contractortasksai-server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install pyinstaller -r requirements.txt
+
+      - name: Build server binary
+        env:
+          TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
+          TASKSAI_PRODUCT_NAME:   ${{ matrix.product_name }}
+          TASKSAI_MCP_KEY:        ${{ matrix.mcp_key }}
+          TASKSAI_ENV_VAR:        ${{ matrix.env_var }}
+          TASKSAI_LIC_PREFIX:     ${{ matrix.lic_prefix }}
+          TASKSAI_SUPPORT_EMAIL:  ${{ matrix.support_email }}
+          TASKSAI_DOMAIN:         ${{ matrix.domain }}
+          TASKSAI_APP_FOLDER:     ${{ matrix.app_folder }}
+          TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
+        run: |
+          pyinstaller --onefile --name ${{ matrix.server_bin }} server.py
+
+      - name: Build installer (bundles server binary)
+        env:
+          TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
+          TASKSAI_PRODUCT_NAME:   ${{ matrix.product_name }}
+          TASKSAI_MCP_KEY:        ${{ matrix.mcp_key }}
+          TASKSAI_ENV_VAR:        ${{ matrix.env_var }}
+          TASKSAI_LIC_PREFIX:     ${{ matrix.lic_prefix }}
+          TASKSAI_SUPPORT_EMAIL:  ${{ matrix.support_email }}
+          TASKSAI_DOMAIN:         ${{ matrix.domain }}
+          TASKSAI_APP_FOLDER:     ${{ matrix.app_folder }}
+          TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
+        run: |
+          pyinstaller --onefile `
+            --add-binary "dist/${{ matrix.server_bin }}.exe;." `
+            --name "${{ matrix.product_name }}-Setup" `
+            install.py
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.product_id }}
+          path: dist/${{ matrix.product_name }}-Setup.exe
+
+  # ── macOS builds ────────────────────────────────────────────────────────────
+  build-mac:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - product_id: law
+            product_name: LawTasksAI
+            mcp_key: lawtasksai
+            env_var: LAWTASKSAI_LICENSE_KEY
+            lic_prefix: "lt_"
+            support_email: hello@lawtasksai.com
+            domain: lawtasksai.com
+            app_folder: LawTasksAI
+            server_bin: lawtasksai-server
+
+          - product_id: realtor
+            product_name: RealtorTasksAI
+            mcp_key: realtortasksai
+            env_var: REALTORTASKSAI_LICENSE_KEY
+            lic_prefix: "rt_"
+            support_email: hello@realtortasksai.com
+            domain: realtortasksai.com
+            app_folder: RealtorTasksAI
+            server_bin: realtortasksai-server
+
+          - product_id: farmer
+            product_name: FarmerTasksAI
+            mcp_key: farmertasksai
+            env_var: FARMERTASKSAI_LICENSE_KEY
+            lic_prefix: "ft_"
+            support_email: hello@farmertasksai.com
+            domain: farmertasksai.com
+            app_folder: FarmerTasksAI
+            server_bin: farmertasksai-server
+
+          - product_id: teacher
+            product_name: TeacherTasksAI
+            mcp_key: teachertasksai
+            env_var: TEACHERTASKSAI_LICENSE_KEY
+            lic_prefix: "tt_"
+            support_email: hello@teachertasksai.com
+            domain: teachertasksai.com
+            app_folder: TeacherTasksAI
+            server_bin: teachertasksai-server
+
+          - product_id: therapist
+            product_name: TherapistTasksAI
+            mcp_key: therapisttasksai
+            env_var: THERAPISTTASKSAI_LICENSE_KEY
+            lic_prefix: "th_"
+            support_email: hello@therapisttasksai.com
+            domain: therapisttasksai.com
+            app_folder: TherapistTasksAI
+            server_bin: therapisttasksai-server
+
+          - product_id: marketing
+            product_name: MarketingTasksAI
+            mcp_key: marketingtasksai
+            env_var: MARKETINGTASKSAI_LICENSE_KEY
+            lic_prefix: "mt_"
+            support_email: hello@marketingtasksai.com
+            domain: marketingtasksai.com
+            app_folder: MarketingTasksAI
+            server_bin: marketingtasksai-server
+
+          - product_id: contractor
+            product_name: ContractorTasksAI
+            mcp_key: contractortasksai
+            env_var: CONTRACTORTASKSAI_LICENSE_KEY
+            lic_prefix: "ct_"
+            support_email: hello@contractortasksai.com
+            domain: contractortasksai.com
+            app_folder: ContractorTasksAI
+            server_bin: contractortasksai-server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install pyinstaller -r requirements.txt
+
+      - name: Build server binary
+        env:
+          TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
+          TASKSAI_PRODUCT_NAME:   ${{ matrix.product_name }}
+          TASKSAI_MCP_KEY:        ${{ matrix.mcp_key }}
+          TASKSAI_ENV_VAR:        ${{ matrix.env_var }}
+          TASKSAI_LIC_PREFIX:     ${{ matrix.lic_prefix }}
+          TASKSAI_SUPPORT_EMAIL:  ${{ matrix.support_email }}
+          TASKSAI_DOMAIN:         ${{ matrix.domain }}
+          TASKSAI_APP_FOLDER:     ${{ matrix.app_folder }}
+          TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
+        run: |
+          pyinstaller --onefile --name ${{ matrix.server_bin }} server.py
+
+      - name: Build installer (bundles server binary)
+        env:
+          TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
+          TASKSAI_PRODUCT_NAME:   ${{ matrix.product_name }}
+          TASKSAI_MCP_KEY:        ${{ matrix.mcp_key }}
+          TASKSAI_ENV_VAR:        ${{ matrix.env_var }}
+          TASKSAI_LIC_PREFIX:     ${{ matrix.lic_prefix }}
+          TASKSAI_SUPPORT_EMAIL:  ${{ matrix.support_email }}
+          TASKSAI_DOMAIN:         ${{ matrix.domain }}
+          TASKSAI_APP_FOLDER:     ${{ matrix.app_folder }}
+          TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
+        run: |
+          pyinstaller --onefile \
+            --add-binary "dist/${{ matrix.server_bin }}:." \
+            --name "${{ matrix.product_name }}-Setup" \
+            install.py
+
+      - name: Upload Mac artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-${{ matrix.product_id }}
+          path: dist/${{ matrix.product_name }}-Setup
+
+  # ── Attach all artifacts to GitHub Release ──────────────────────────────────
+  release:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: List built files
+        run: find artifacts/ -type f | sort
+
+      - name: Create GitHub Release with all installers
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
