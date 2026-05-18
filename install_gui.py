@@ -449,9 +449,11 @@ def run_gui(prefilled_key: str = "", prefilled_token: str = ""):
             valid, credits, msg = verify_license(prefilled_key)
             if valid:
                 status_var.set(f"✅  {credits} credits ready — click Install to continue")
+                install_btn.config(state="normal")
                 key_entry.config(fg="#059669")
             else:
                 status_var.set(f"⚠️  {msg}")
+                install_btn.config(state="normal")  # let them try anyway
         threading.Thread(target=auto_verify, daemon=True).start()
 
     root.mainloop()
