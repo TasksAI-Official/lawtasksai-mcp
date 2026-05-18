@@ -18,9 +18,12 @@ counts credits — it never sees what you're working on.
 
 import os
 import re
+import sys
 import time
 import asyncio
+import platform
 import httpx
+from pathlib import Path
 from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -34,9 +37,7 @@ from mcp.types import GetPromptResult
 
 def _find_dotenv() -> str | None:
     """Return path to .env or None. Checks install dir first."""
-    system = platform.system() if hasattr(os, 'name') else ''
-    import platform as _plat
-    system = _plat.system()
+    system = platform.system()
 
     # Determine app folder name from this binary's parent dir name,
     # or fall back to checking all known vertical install dirs.
