@@ -371,19 +371,33 @@ def run_gui(prefilled_key: str = "", prefilled_token: str = ""):
 
                 # Install server binary
                 install_dir = get_install_dir()
+                log(f"   Install dir: {install_dir}")
                 install_dir.mkdir(parents=True, exist_ok=True)
                 progress_var.set(25)
 
                 bundled = get_bundled_server_path()
                 server_dest = install_dir / get_server_binary_name()
+                log(f"   Bundled server: {bundled}")
+                log(f"   Server dest: {server_dest}")
 
                 if bundled:
+                    # If target exists and is locked (e.g. Claude Desktop running), try removing first
+                    if server_dest.exists():
+                        try:
+                            server_dest.unlink()
+                        except PermissionError:
+                            log("⚠️  Server binary is locked — close Claude Desktop and retry")
+                            status_var.set("⚠️  Close Claude Desktop first, then click Install again")
+                            install_btn.config(state="normal")
+                            return
                     shutil.copy2(str(bundled), str(server_dest))
                     if platform.system() != "Windows":
                         server_dest.chmod(0o755)
                     log(f"✓ Server installed to {server_dest}")
                 else:
-                    log("⚠️  Server binary not found in bundle — skipping")
+                    log("⚠️  Server binary not found in bundle")
+                    log("   This installer may not have the server bundled.")
+                    log("   The server may already be installed from a previous run.")
 
                 progress_var.set(45)
 
@@ -424,7 +438,9 @@ def run_gui(prefilled_key: str = "", prefilled_token: str = ""):
                 log(f"Restart Claude Desktop (or your AI tool) to begin.")
 
             except Exception as e:
+                import traceback
                 log(f"❌ Error: {e}")
+                log(f"   Details: {traceback.format_exc()}")
                 status_var.set(f"❌  Installation failed: {e}")
                 install_btn.config(state="normal")
 
@@ -514,4 +530,16 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        # Last-resort crash log — write to file next to exe
+        import traceback
+        crash_path = Path(sys.executable).parent / "install-crash.log" if getattr(sys, 'frozen', False) else Path("install-crash.log")
+        try:
+            with open(crash_path, "w") as f:
+                f.write(f"Crash at {datetime.now()}\n\n")
+                traceback.print_exc(file=f)
+        except Exception:
+            pass
+        raise
