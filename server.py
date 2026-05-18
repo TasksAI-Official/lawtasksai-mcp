@@ -24,6 +24,12 @@ import asyncio
 import platform
 import httpx
 from pathlib import Path
+
+# Force UTF-8 stdout/stderr on Windows (default is CP1252 which breaks emoji)
+if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -864,9 +870,9 @@ async def main():
     v = _vertical or {}
     abbrev_count = len(_abbrevs_db) if _abbrevs_db is not None else 0
     abbrev_src   = "db" if _abbrevs_db is not None else "fallback"
-    print(f"✅ {v.get('product_name', 'TasksAI')} MCP Server ready (v{SERVER_VERSION})", flush=True)
-    print(f"   Abbreviations: {abbrev_count} loaded from {abbrev_src}", flush=True)
-    print(f"   Vertical: {v.get('product_id', 'unknown')} | "
+    print(f"[OK] {v.get('product_name', 'TasksAI')} MCP Server ready (v{SERVER_VERSION})", flush=True)
+    print(f"     Abbreviations: {abbrev_count} loaded from {abbrev_src}", flush=True)
+    print(f"     Vertical: {v.get('product_id', 'unknown')} | "
           f"Tools: {v.get('tool_prefix', 'tasksai')}_search / execute / balance / categories",
           flush=True)
 
