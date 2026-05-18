@@ -85,10 +85,9 @@ API_BASE    = os.getenv("TASKSAI_API_BASE", os.getenv("LAWTASKSAI_API_BASE", "ht
 LICENSE_KEY = os.getenv("TASKSAI_LICENSE_KEY", os.getenv("LAWTASKSAI_LICENSE_KEY", ""))
 
 if not LICENSE_KEY:
-    raise ValueError(
-        "License key is required. Set TASKSAI_LICENSE_KEY in your .env file.\n"
-        "Find your key in your purchase confirmation email."
-    )
+    print("ERROR: License key is required. Set TASKSAI_LICENSE_KEY in your .env file.", file=sys.stderr, flush=True)
+    print("Find your key in your purchase confirmation email.", file=sys.stderr, flush=True)
+    sys.exit(1)
 
 SERVER_VERSION = "2.1.0"
 
@@ -731,8 +730,8 @@ def _rebuild_tools():
     prefix   = _vertical.get("tool_prefix", "lawtasksai")
     name     = _vertical.get("product_name", "LawTasksAI")
     occ      = _vertical.get("occupation", "professionals")
-    domain   = _vertical.get("domain", "taskvaultai.com")
-    support  = _vertical.get("support_email", "hello@taskvaultai.com")
+    domain   = _vertical.get("domain", "lawtasksai.com")
+    support  = _vertical.get("support_email", "hello@lawtasksai.com")
     _tools = build_tools(prefix, name, occ)
     _system_prompt_text = build_system_prompt(name, occ, prefix, domain, support)
 
@@ -818,7 +817,7 @@ async def call_tool(name, arguments):
             result = await api_get("/v1/credits/balance")
             balance  = result.get("credits_balance", "?")
             lic_type = result.get("license_type", "")
-            domain   = v.get("domain", "taskvaultai.com")
+            domain   = v.get("domain", "lawtasksai.com")
             return [TextContent(type="text", text=(
                 f"**{product_name} Credits**\n\n"
                 f"- Balance: **{balance} credits**\n"
@@ -846,7 +845,7 @@ async def call_tool(name, arguments):
 
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 402:
-            domain = v.get("domain", "taskvaultai.com")
+            domain = v.get("domain", "lawtasksai.com")
             return [TextContent(type="text", text=(
                 f"**Insufficient credits.**\n\n"
                 f"Purchase more at: https://{domain}/#pricing"
@@ -870,11 +869,13 @@ async def main():
     v = _vertical or {}
     abbrev_count = len(_abbrevs_db) if _abbrevs_db is not None else 0
     abbrev_src   = "db" if _abbrevs_db is not None else "fallback"
-    print(f"[OK] {v.get('product_name', 'TasksAI')} MCP Server ready (v{SERVER_VERSION})", flush=True)
-    print(f"     Abbreviations: {abbrev_count} loaded from {abbrev_src}", flush=True)
+    # MCP uses stdout for JSON-RPC — all logging MUST go to stderr
+    import sys as _sys
+    print(f"[OK] {v.get('product_name', 'TasksAI')} MCP Server ready (v{SERVER_VERSION})", file=_sys.stderr, flush=True)
+    print(f"     Abbreviations: {abbrev_count} loaded from {abbrev_src}", file=_sys.stderr, flush=True)
     print(f"     Vertical: {v.get('product_id', 'unknown')} | "
           f"Tools: {v.get('tool_prefix', 'tasksai')}_search / execute / balance / categories",
-          flush=True)
+          file=_sys.stderr, flush=True)
 
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, server.create_initialization_options())

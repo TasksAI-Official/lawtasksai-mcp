@@ -142,7 +142,7 @@ def _get_mcp_entry(server_path, license_key):
     path_str = str(server_path)
     if path_str.endswith(".py"):
         return {"command": sys.executable, "args": [path_str], "env": {ENV_VAR_NAME: license_key}}
-    return {"command": path_str, "env": {ENV_VAR_NAME: license_key}}
+    return {"command": path_str, "env": {ENV_VAR_NAME: license_key, "TASKSAI_LICENSE_KEY": license_key}}
 
 def update_config(config_path, server_path, license_key):
     config_path.parent.mkdir(parents=True, exist_ok=True)
