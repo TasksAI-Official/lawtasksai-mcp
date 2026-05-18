@@ -127,7 +127,8 @@ jobs:
           pyinstaller --onefile `
             --add-binary "dist/${{ matrix.server_bin }}.exe;." `
             --name "${{ matrix.product_name }}-Setup" `
-            install.py
+            --windowed `
+            install_gui.py
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -250,7 +251,7 @@ jobs:
           pyinstaller --onefile \
             --add-binary "dist/${{ matrix.server_bin }}:." \
             --name "${{ matrix.product_name }}-Setup" \
-            install.py
+            install_gui.py
 
       - name: Upload Mac artifacts
         uses: actions/upload-artifact@v4
