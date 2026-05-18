@@ -175,6 +175,12 @@ def get_license_key(install_dir: Path) -> str:
     Read license key from the install dir .env (upgrade/reinstall path),
     then from the installer's own directory, then prompt the user.
     """
+    # 0. Key baked into the binary at build time (most reliable — works even if .env is missing)
+    baked_key = os.getenv("TASKSAI_BAKED_LICENSE_KEY", "").strip()
+    if baked_key and baked_key not in ("YOUR_KEY_HERE", ""):
+        print(f"  License key loaded automatically.")
+        return baked_key
+
     # 1. Already installed — use existing key
     env_path = install_dir / ".env"
     if env_path.exists():
@@ -184,11 +190,23 @@ def get_license_key(install_dir: Path) -> str:
             return key
 
     # 2. .env next to installer (downloaded zip workflow)
-    local_env = Path(__file__).parent / ".env"
-    if local_env.exists():
-        key = _read_key_from_env(local_env)
-        if key:
-            return key
+    # When bundled by PyInstaller, __file__ points to _MEIPASS (temp dir).
+    # The .env ships next to the .exe itself, so use sys.executable's dir.
+    if is_bundled():
+        installer_dir = Path(sys.executable).parent
+    else:
+        installer_dir = Path(__file__).parent
+
+    for env_candidate in [
+        installer_dir / ".env",          # next to the .exe (primary)
+        installer_dir / ".. " / ".env",  # one level up (just in case)
+        Path(__file__).parent / ".env",  # _MEIPASS (bundled helper files)
+    ]:
+        if env_candidate.exists():
+            key = _read_key_from_env(env_candidate)
+            if key:
+                print(f"  Found license key in {env_candidate.resolve()}")
+                return key
 
     # 3. Prompt
     print(f"\n  Enter your {PRODUCT_NAME} license key (starts with {LICENSE_PREFIX}):")
