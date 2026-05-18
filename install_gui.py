@@ -88,15 +88,54 @@ def get_mcp_clients():
             clients["Windsurf"] = windsurf_path
     elif system == "Windows":
         appdata = os.environ.get("APPDATA", "")
-        claude_path = Path(appdata) / "Claude" / "claude_desktop_config.json"
-        if claude_path.parent.exists():
+        localappdata = os.environ.get("LOCALAPPDATA", "")
+
+        # Claude Desktop — config file may not exist yet; create dir if needed
+        # Check multiple possible locations
+        claude_dirs = [
+            Path(appdata) / "Claude",
+            Path(localappdata) / "Claude",
+            Path(localappdata) / "AnthropicClaude" / "app-*",
+        ]
+        claude_found = False
+        for cd in claude_dirs:
+            # Handle glob patterns
+            import glob as _glob
+            matches = _glob.glob(str(cd)) if "*" in str(cd) else ([str(cd)] if cd.exists() else [])
+            for match in matches:
+                claude_path = Path(match) / "claude_desktop_config.json"
+                clients["Claude Desktop"] = claude_path
+                claude_path.parent.mkdir(parents=True, exist_ok=True)
+                claude_found = True
+                break
+            if claude_found:
+                break
+        # Always include Claude Desktop even if dir doesn't exist — create it
+        if not claude_found:
+            claude_path = Path(appdata) / "Claude" / "claude_desktop_config.json"
+            claude_path.parent.mkdir(parents=True, exist_ok=True)
             clients["Claude Desktop"] = claude_path
-        cursor_path = Path(appdata) / "Cursor" / "User" / "globalStorage" / "cursor-mcp" / "mcp.json"
-        if cursor_path.parent.exists():
-            clients["Cursor"] = cursor_path
-        windsurf_path = Path(os.environ.get("LOCALAPPDATA","")) / "Windsurf" / "User" / "globalStorage" / "windsurf-mcp" / "mcp_config.json"
-        if windsurf_path.parent.exists():
-            clients["Windsurf"] = windsurf_path
+
+        # Cursor
+        cursor_paths = [
+            Path(appdata) / "Cursor" / "User" / "globalStorage" / "cursor-mcp" / "mcp.json",
+            Path(appdata) / "Cursor" / "User" / "mcp.json",
+        ]
+        for cp in cursor_paths:
+            if cp.parent.exists():
+                clients["Cursor"] = cp
+                break
+
+        # Windsurf
+        windsurf_paths = [
+            Path(localappdata) / "Windsurf" / "User" / "globalStorage" / "windsurf-mcp" / "mcp_config.json",
+            Path(appdata) / "Windsurf" / "User" / "globalStorage" / "windsurf-mcp" / "mcp_config.json",
+        ]
+        for wp in windsurf_paths:
+            if wp.parent.exists():
+                clients["Windsurf"] = wp
+                break
+
     return clients
 
 def _get_mcp_entry(server_path, license_key):
@@ -178,15 +217,19 @@ def run_gui(prefilled_key: str = "", prefilled_token: str = ""):
     root.title(f"{PRODUCT_NAME} Installer")
     root.resizable(False, False)
 
-    W, H = 520, 480
-    root.geometry(f"{W}x{H}")
+    W, H = 560, 600
     root.configure(bg="#f9fafb")
 
     # Center on screen
     root.update_idletasks()
-    x = (root.winfo_screenwidth() - W) // 2
-    y = (root.winfo_screenheight() - H) // 2
+    sw = root.winfo_screenwidth()
+    sh = root.winfo_screenheight()
+    # Never taller than 90% of screen
+    H = min(H, int(sh * 0.90))
+    x = (sw - W) // 2
+    y = (sh - H) // 2
     root.geometry(f"{W}x{H}+{x}+{y}")
+    root.minsize(W, 500)
 
     # ── State ─────────────────────────────────────────────────────────────────
     license_var   = tk.StringVar(value=prefilled_key)
@@ -266,10 +309,16 @@ def run_gui(prefilled_key: str = "", prefilled_token: str = ""):
 
     tk.Frame(body, bg="#e5e7eb", height=1).pack(fill="x", pady=14)
 
-    # Progress log
-    log_text = tk.Text(body, height=6, font=("Courier", 9), bg="#1f2937", fg="#d1fae5",
-                       relief="flat", state="disabled", wrap="word")
-    log_text.pack(fill="x")
+    # Progress log — scrollable
+    log_frame = tk.Frame(body, bg="#1f2937")
+    log_frame.pack(fill="both", expand=True)
+    log_scroll = tk.Scrollbar(log_frame)
+    log_scroll.pack(side="right", fill="y")
+    log_text = tk.Text(log_frame, height=8, font=("Courier", 9), bg="#1f2937", fg="#d1fae5",
+                       relief="flat", state="disabled", wrap="word",
+                       yscrollcommand=log_scroll.set)
+    log_text.pack(side="left", fill="both", expand=True)
+    log_scroll.config(command=log_text.yview)
 
     def log(msg):
         log_lines.append(msg)
@@ -339,10 +388,12 @@ def run_gui(prefilled_key: str = "", prefilled_token: str = ""):
                         try:
                             update_config(config_path, server_dest, key)
                             log(f"✓ Configured {name}")
+                            log(f"   Config: {config_path}")
                         except Exception as e:
                             log(f"⚠️  {name}: {e}")
                 else:
-                    log("⚠️  No AI tools configured (install Claude Desktop and re-run)")
+                    log("⚠️  No AI tools configured")
+                    log(f"   Install Claude Desktop: https://claude.ai/download")
 
                 progress_var.set(85)
 
