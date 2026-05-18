@@ -806,7 +806,7 @@ async def call_tool(name, arguments):
 
             result = await api_get(f"/v1/skills/{skill_id}/execute")
 
-            content = result.get("content", "")
+            content = result.get("schema", result.get("content", ""))
             skill_name = result.get("skill_name", skill_id)
             credits_remaining = result.get("credits_remaining", "?")
 
