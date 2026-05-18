@@ -38,11 +38,13 @@ if not LICENSE_KEY:
         "Find your key in your purchase confirmation email."
     )
 
+SERVER_VERSION = "2.1.0"
+
 AUTH_HEADERS = {
     "Authorization":    f"Bearer {LICENSE_KEY}",
     "Content-Type":     "application/json",
     "X-Client-Type":    "mcp-server",
-    "X-Client-Version": "2.0.0",
+    "X-Client-Version": SERVER_VERSION,
 }
 
 # ── Per-vertical abbreviation maps ────────────────────────────────────────────
@@ -768,7 +770,8 @@ async def call_tool(name, arguments):
             return [TextContent(type="text", text=(
                 f"**{product_name} Credits**\n\n"
                 f"- Balance: **{balance} credits**\n"
-                f"- License type: {lic_type}\n\n"
+                f"- License type: {lic_type}\n"
+                f"- MCP server version: {SERVER_VERSION}\n\n"
                 f"Purchase more at: https://{domain}/#pricing"
             ))]
 
@@ -815,7 +818,7 @@ async def main():
     v = _vertical or {}
     abbrev_count = len(_abbrevs_db) if _abbrevs_db is not None else 0
     abbrev_src   = "db" if _abbrevs_db is not None else "fallback"
-    print(f"✅ {v.get('product_name', 'TasksAI')} MCP Server ready", flush=True)
+    print(f"✅ {v.get('product_name', 'TasksAI')} MCP Server ready (v{SERVER_VERSION})", flush=True)
     print(f"   Abbreviations: {abbrev_count} loaded from {abbrev_src}", flush=True)
     print(f"   Vertical: {v.get('product_id', 'unknown')} | "
           f"Tools: {v.get('tool_prefix', 'tasksai')}_search / execute / balance / categories",
