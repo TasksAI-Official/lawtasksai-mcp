@@ -24,15 +24,27 @@ from datetime import datetime
 
 # ── Vertical configuration (baked in at build time) ──────────────────────────
 
-PRODUCT_ID     = os.getenv("TASKSAI_PRODUCT_ID",   "law")
-PRODUCT_NAME   = os.getenv("TASKSAI_PRODUCT_NAME",  "LawTasksAI")
-MCP_KEY_NAME   = os.getenv("TASKSAI_MCP_KEY",       "lawtasksai")
-ENV_VAR_NAME   = os.getenv("TASKSAI_ENV_VAR",       "LAWTASKSAI_LICENSE_KEY")
-LICENSE_PREFIX = os.getenv("TASKSAI_LIC_PREFIX",    "lt_")
-SUPPORT_EMAIL  = os.getenv("TASKSAI_SUPPORT_EMAIL", "hello@lawtasksai.com")
-DOMAIN         = os.getenv("TASKSAI_DOMAIN",        "lawtasksai.com")
-APP_FOLDER     = os.getenv("TASKSAI_APP_FOLDER",    "LawTasksAI")
-SERVER_BIN     = os.getenv("TASKSAI_SERVER_BIN",    "lawtasksai-server")
+# Try build-time config first (baked into binary by PyInstaller), then env vars
+try:
+    import _build_config as _bc
+except ImportError:
+    _bc = None
+
+def _cfg(attr, env_key, default):
+    """Read from baked config, then env, then default."""
+    if _bc and hasattr(_bc, attr):
+        return getattr(_bc, attr)
+    return os.getenv(env_key, default)
+
+PRODUCT_ID     = _cfg("PRODUCT_ID",     "TASKSAI_PRODUCT_ID",     "law")
+PRODUCT_NAME   = _cfg("PRODUCT_NAME",   "TASKSAI_PRODUCT_NAME",   "LawTasksAI")
+MCP_KEY_NAME   = _cfg("MCP_KEY_NAME",   "TASKSAI_MCP_KEY",        "lawtasksai")
+ENV_VAR_NAME   = _cfg("ENV_VAR_NAME",   "TASKSAI_ENV_VAR",        "LAWTASKSAI_LICENSE_KEY")
+LICENSE_PREFIX = _cfg("LICENSE_PREFIX", "TASKSAI_LIC_PREFIX",     "lt_")
+SUPPORT_EMAIL  = _cfg("SUPPORT_EMAIL", "TASKSAI_SUPPORT_EMAIL",  "hello@lawtasksai.com")
+DOMAIN         = _cfg("DOMAIN",         "TASKSAI_DOMAIN",         "lawtasksai.com")
+APP_FOLDER     = _cfg("APP_FOLDER",     "TASKSAI_APP_FOLDER",     "LawTasksAI")
+SERVER_BIN     = _cfg("SERVER_BIN",     "TASKSAI_SERVER_BIN",     "lawtasksai-server")
 ACCENT_COLOR   = os.getenv("TASKSAI_ACCENT_COLOR",  "#2563eb")
 API_BASE       = "https://api.lawtasksai.com"
 

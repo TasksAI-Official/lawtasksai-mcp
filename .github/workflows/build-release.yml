@@ -112,22 +112,27 @@ jobs:
         run: |
           pyinstaller --onefile --name ${{ matrix.server_bin }} server.py
 
+      - name: Write build config
+        shell: python
+        run: |
+          with open('_build_config.py', 'w') as f:
+              f.write('# Auto-generated at build time\n')
+              f.write('PRODUCT_ID = "${{ matrix.product_id }}"\n')
+              f.write('PRODUCT_NAME = "${{ matrix.product_name }}"\n')
+              f.write('MCP_KEY_NAME = "${{ matrix.mcp_key }}"\n')
+              f.write('ENV_VAR_NAME = "${{ matrix.env_var }}"\n')
+              f.write('LICENSE_PREFIX = "${{ matrix.lic_prefix }}"\n')
+              f.write('SUPPORT_EMAIL = "${{ matrix.support_email }}"\n')
+              f.write('DOMAIN = "${{ matrix.domain }}"\n')
+              f.write('APP_FOLDER = "${{ matrix.app_folder }}"\n')
+              f.write('SERVER_BIN = "${{ matrix.server_bin }}"\n')
+
       - name: Build installer (bundles server binary)
-        env:
-          TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
-          TASKSAI_PRODUCT_NAME:   ${{ matrix.product_name }}
-          TASKSAI_MCP_KEY:        ${{ matrix.mcp_key }}
-          TASKSAI_ENV_VAR:        ${{ matrix.env_var }}
-          TASKSAI_LIC_PREFIX:     ${{ matrix.lic_prefix }}
-          TASKSAI_SUPPORT_EMAIL:  ${{ matrix.support_email }}
-          TASKSAI_DOMAIN:         ${{ matrix.domain }}
-          TASKSAI_APP_FOLDER:     ${{ matrix.app_folder }}
-          TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
         run: |
           pyinstaller --onefile `
             --add-binary "dist/${{ matrix.server_bin }}.exe;." `
+            --hidden-import _build_config `
             --name "${{ matrix.product_name }}-Setup" `
-            --windowed `
             install_gui.py
 
       - name: Upload Windows artifacts
@@ -236,20 +241,26 @@ jobs:
         run: |
           pyinstaller --onefile --name ${{ matrix.server_bin }} server.py
 
+      - name: Write build config
+        shell: python
+        run: |
+          with open('_build_config.py', 'w') as f:
+              f.write('# Auto-generated at build time\n')
+              f.write('PRODUCT_ID = "${{ matrix.product_id }}"\n')
+              f.write('PRODUCT_NAME = "${{ matrix.product_name }}"\n')
+              f.write('MCP_KEY_NAME = "${{ matrix.mcp_key }}"\n')
+              f.write('ENV_VAR_NAME = "${{ matrix.env_var }}"\n')
+              f.write('LICENSE_PREFIX = "${{ matrix.lic_prefix }}"\n')
+              f.write('SUPPORT_EMAIL = "${{ matrix.support_email }}"\n')
+              f.write('DOMAIN = "${{ matrix.domain }}"\n')
+              f.write('APP_FOLDER = "${{ matrix.app_folder }}"\n')
+              f.write('SERVER_BIN = "${{ matrix.server_bin }}"\n')
+
       - name: Build installer (bundles server binary)
-        env:
-          TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
-          TASKSAI_PRODUCT_NAME:   ${{ matrix.product_name }}
-          TASKSAI_MCP_KEY:        ${{ matrix.mcp_key }}
-          TASKSAI_ENV_VAR:        ${{ matrix.env_var }}
-          TASKSAI_LIC_PREFIX:     ${{ matrix.lic_prefix }}
-          TASKSAI_SUPPORT_EMAIL:  ${{ matrix.support_email }}
-          TASKSAI_DOMAIN:         ${{ matrix.domain }}
-          TASKSAI_APP_FOLDER:     ${{ matrix.app_folder }}
-          TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
         run: |
           pyinstaller --onefile \
             --add-binary "dist/${{ matrix.server_bin }}:." \
+            --hidden-import _build_config \
             --name "${{ matrix.product_name }}-Setup" \
             install_gui.py
 
