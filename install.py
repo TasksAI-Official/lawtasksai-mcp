@@ -456,7 +456,7 @@ def verify_installation(license_key: str) -> bool:
     import urllib.request
     import urllib.error
 
-    API_BASE = "https://api.taskvaultai.com"
+    API_BASE = "https://api.lawtasksai.com"
     print()
     print("  Verifying license...")
 

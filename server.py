@@ -75,7 +75,7 @@ if _dotenv_path:
 else:
     load_dotenv()  # fallback: search cwd and parent dirs
 
-API_BASE    = os.getenv("TASKSAI_API_BASE", os.getenv("LAWTASKSAI_API_BASE", "https://api.taskvaultai.com"))
+API_BASE    = os.getenv("TASKSAI_API_BASE", os.getenv("LAWTASKSAI_API_BASE", "https://api.lawtasksai.com"))
 LICENSE_KEY = os.getenv("TASKSAI_LICENSE_KEY", os.getenv("LAWTASKSAI_LICENSE_KEY", ""))
 
 if not LICENSE_KEY:
