@@ -99,34 +99,25 @@ def get_mcp_clients():
         if Path("/Applications/Windsurf.app").exists() or windsurf_path.parent.exists():
             clients["Windsurf"] = windsurf_path
     elif system == "Windows":
-        appdata = os.environ.get("APPDATA", "")
-        localappdata = os.environ.get("LOCALAPPDATA", "")
+        appdata = os.environ.get("APPDATA", str(Path.home() / "AppData" / "Roaming"))
+        localappdata = os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))
 
-        # Claude Desktop — config file may not exist yet; create dir if needed
-        # Check multiple possible locations
-        claude_dirs = [
-            Path(appdata) / "Claude",
-            Path(localappdata) / "Claude",
-            Path(localappdata) / "AnthropicClaude" / "app-*",
-        ]
-        claude_found = False
-        for cd in claude_dirs:
-            # Handle glob patterns
-            import glob as _glob
-            matches = _glob.glob(str(cd)) if "*" in str(cd) else ([str(cd)] if cd.exists() else [])
-            for match in matches:
-                claude_path = Path(match) / "claude_desktop_config.json"
-                clients["Claude Desktop"] = claude_path
-                claude_path.parent.mkdir(parents=True, exist_ok=True)
-                claude_found = True
+        # Claude Desktop — always write to standard path, create dir if needed
+        # Standard path: %APPDATA%\Claude\claude_desktop_config.json
+        claude_path = Path(appdata) / "Claude" / "claude_desktop_config.json"
+        claude_path.parent.mkdir(parents=True, exist_ok=True)
+        clients["Claude Desktop"] = claude_path
+
+        # Also check for Claude in LocalAppData (some versions)
+        import glob as _glob
+        for pattern in [
+            str(Path(localappdata) / "AnthropicClaude" / "app-*"),
+        ]:
+            for match in _glob.glob(pattern):
+                alt_path = Path(match) / "claude_desktop_config.json"
+                if alt_path.parent.exists() and str(alt_path) != str(claude_path):
+                    clients[f"Claude Desktop ({match})"] = alt_path
                 break
-            if claude_found:
-                break
-        # Always include Claude Desktop even if dir doesn't exist — create it
-        if not claude_found:
-            claude_path = Path(appdata) / "Claude" / "claude_desktop_config.json"
-            claude_path.parent.mkdir(parents=True, exist_ok=True)
-            clients["Claude Desktop"] = claude_path
 
         # Cursor
         cursor_paths = [
