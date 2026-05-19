@@ -1,18 +1,14 @@
 name: Build & Release Installers
 
-# Triggers on version tags: git tag v2.0.0 && git push --tags
 on:
   push:
     tags:
       - 'v*'
 
-# Build matrix — add verticals here as they go live
-# Each entry produces: {ProductName}-Setup.{exe|bin} + {product_id}-server.{exe|bin}
 env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # ── Windows builds ──────────────────────────────────────────────────────────
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -88,16 +84,243 @@ jobs:
             app_folder: ContractorTasksAI
             server_bin: contractortasksai-server
 
+          - product_id: accounting
+            product_name: AccountingTasksAI
+            mcp_key: accountingtasksai
+            env_var: ACCOUNTINGTASKSAI_LICENSE_KEY
+            lic_prefix: "at_"
+            support_email: hello@accountingtasksai.com
+            domain: accountingtasksai.com
+            app_folder: AccountingTasksAI
+            server_bin: accountingtasksai-server
+
+          - product_id: chiropractor
+            product_name: ChiropractorTasksAI
+            mcp_key: chiropractortasksai
+            env_var: CHIROPRACTORTASKSAI_LICENSE_KEY
+            lic_prefix: "ch_"
+            support_email: hello@chiropractortasksai.com
+            domain: chiropractortasksai.com
+            app_folder: ChiropractorTasksAI
+            server_bin: chiropractortasksai-server
+
+          - product_id: church
+            product_name: ChurchTasksAI
+            mcp_key: churchtasksai
+            env_var: CHURCHTASKSAI_LICENSE_KEY
+            lic_prefix: "cu_"
+            support_email: hello@churchtasksai.com
+            domain: churchadmintasksai.com
+            app_folder: ChurchTasksAI
+            server_bin: churchtasksai-server
+
+          - product_id: dentist
+            product_name: DentistTasksAI
+            mcp_key: dentisttasksai
+            env_var: DENTISTTASKSAI_LICENSE_KEY
+            lic_prefix: "dt_"
+            support_email: hello@dentisttasksai.com
+            domain: dentisttasksai.com
+            app_folder: DentistTasksAI
+            server_bin: dentisttasksai-server
+
+          - product_id: designer
+            product_name: DesignerTasksAI
+            mcp_key: designertasksai
+            env_var: DESIGNERTASKSAI_LICENSE_KEY
+            lic_prefix: "ds_"
+            support_email: hello@designertasksai.com
+            domain: designertasksai.com
+            app_folder: DesignerTasksAI
+            server_bin: designertasksai-server
+
+          - product_id: electrician
+            product_name: ElectricianTasksAI
+            mcp_key: electriciantasksai
+            env_var: ELECTRICIANTASKSAI_LICENSE_KEY
+            lic_prefix: "el_"
+            support_email: hello@electriciantasksai.com
+            domain: electriciantasksai.com
+            app_folder: ElectricianTasksAI
+            server_bin: electriciantasksai-server
+
+          - product_id: eventplanner
+            product_name: EventPlannerTasksAI
+            mcp_key: eventplannertasksai
+            env_var: EVENTPLANNERTASKSAI_LICENSE_KEY
+            lic_prefix: "ep_"
+            support_email: hello@eventplannertasksai.com
+            domain: eventplannertasksai.com
+            app_folder: EventPlannerTasksAI
+            server_bin: eventplannertasksai-server
+
+          - product_id: funeral
+            product_name: FuneralTasksAI
+            mcp_key: funeraltasksai
+            env_var: FUNERALTASKSAI_LICENSE_KEY
+            lic_prefix: "fu_"
+            support_email: hello@funeraltasksai.com
+            domain: funeraltasksai.com
+            app_folder: FuneralTasksAI
+            server_bin: funeraltasksai-server
+
+          - product_id: hr
+            product_name: HRTasksAI
+            mcp_key: hrtasksai
+            env_var: HRTASKSAI_LICENSE_KEY
+            lic_prefix: "hr_"
+            support_email: hello@hrtasksai.com
+            domain: hrtasksai.com
+            app_folder: HRTasksAI
+            server_bin: hrtasksai-server
+
+          - product_id: insurance
+            product_name: InsuranceTasksAI
+            mcp_key: insurancetasksai
+            env_var: INSURANCETASKSAI_LICENSE_KEY
+            lic_prefix: "in_"
+            support_email: hello@insurancetasksai.com
+            domain: insurancetasksai.com
+            app_folder: InsuranceTasksAI
+            server_bin: insurancetasksai-server
+
+          - product_id: landlord
+            product_name: LandlordTasksAI
+            mcp_key: landlordtasksai
+            env_var: LANDLORDTASKSAI_LICENSE_KEY
+            lic_prefix: "ll_"
+            support_email: hello@landlordtasksai.com
+            domain: landlordtasksai.com
+            app_folder: LandlordTasksAI
+            server_bin: landlordtasksai-server
+
+          - product_id: militaryspouse
+            product_name: MilitarySpouseTasksAI
+            mcp_key: militaryspousetasksai
+            env_var: MILITARYSPOUSETASKSAI_LICENSE_KEY
+            lic_prefix: "ms_"
+            support_email: hello@militaryspousetasksai.com
+            domain: militaryspousetasksai.com
+            app_folder: MilitarySpouseTasksAI
+            server_bin: militaryspousetasksai-server
+
+          - product_id: mortgage
+            product_name: MortgageTasksAI
+            mcp_key: mortgagetasksai
+            env_var: MORTGAGETASKSAI_LICENSE_KEY
+            lic_prefix: "mo_"
+            support_email: hello@mortgagetasksai.com
+            domain: mortgagetasksai.com
+            app_folder: MortgageTasksAI
+            server_bin: mortgagetasksai-server
+
+          - product_id: mortuary
+            product_name: MortuaryTasksAI
+            mcp_key: mortuarytasksai
+            env_var: MORTUARYTASKSAI_LICENSE_KEY
+            lic_prefix: "mu_"
+            support_email: hello@mortuarytasksai.com
+            domain: mortuarytasksai.com
+            app_folder: MortuaryTasksAI
+            server_bin: mortuarytasksai-server
+
+          - product_id: nutritionist
+            product_name: NutritionistTasksAI
+            mcp_key: nutritionisttasksai
+            env_var: NUTRITIONISTTASKSAI_LICENSE_KEY
+            lic_prefix: "nt_"
+            support_email: hello@nutritionisttasksai.com
+            domain: nutritionisttasksai.com
+            app_folder: NutritionistTasksAI
+            server_bin: nutritionisttasksai-server
+
+          - product_id: pastor
+            product_name: PastorTasksAI
+            mcp_key: pastortasksai
+            env_var: PASTORTASKSAI_LICENSE_KEY
+            lic_prefix: "pt_"
+            support_email: hello@pastortasksai.com
+            domain: pastortasksai.com
+            app_folder: PastorTasksAI
+            server_bin: pastortasksai-server
+
+          - product_id: personaltrainer
+            product_name: PersonalTrainerTasksAI
+            mcp_key: personaltrainertasksai
+            env_var: PERSONALTRAINERTASKSAI_LICENSE_KEY
+            lic_prefix: "pp_"
+            support_email: hello@personaltrainertasksai.com
+            domain: personaltrainertasksai.com
+            app_folder: PersonalTrainerTasksAI
+            server_bin: personaltrainertasksai-server
+
+          - product_id: plumber
+            product_name: PlumberTasksAI
+            mcp_key: plumbertasksai
+            env_var: PLUMBERTASKSAI_LICENSE_KEY
+            lic_prefix: "pl_"
+            support_email: hello@plumbertasksai.com
+            domain: plumbertasksai.com
+            app_folder: PlumberTasksAI
+            server_bin: plumbertasksai-server
+
+          - product_id: principal
+            product_name: PrincipalTasksAI
+            mcp_key: principaltasksai
+            env_var: PRINCIPALTASKSAI_LICENSE_KEY
+            lic_prefix: "pr_"
+            support_email: hello@principaltasksai.com
+            domain: principaltasksai.com
+            app_folder: PrincipalTasksAI
+            server_bin: principaltasksai-server
+
+          - product_id: restaurant
+            product_name: RestaurantTasksAI
+            mcp_key: restauranttasksai
+            env_var: RESTAURANTTASKSAI_LICENSE_KEY
+            lic_prefix: "re_"
+            support_email: hello@restauranttasksai.com
+            domain: restauranttasksai.com
+            app_folder: RestaurantTasksAI
+            server_bin: restauranttasksai-server
+
+          - product_id: salon
+            product_name: SalonTasksAI
+            mcp_key: salontasksai
+            env_var: SALONTASKSAI_LICENSE_KEY
+            lic_prefix: "sl_"
+            support_email: hello@salontasksai.com
+            domain: salontasksai.com
+            app_folder: SalonTasksAI
+            server_bin: salontasksai-server
+
+          - product_id: travelagent
+            product_name: TravelAgentTasksAI
+            mcp_key: travelagenttasksai
+            env_var: TRAVELAGENTTASKSAI_LICENSE_KEY
+            lic_prefix: "ta_"
+            support_email: hello@travelagenttasksai.com
+            domain: travelagenttasksai.com
+            app_folder: TravelAgentTasksAI
+            server_bin: travelagenttasksai-server
+
+          - product_id: vet
+            product_name: VetTasksAI
+            mcp_key: vettasksai
+            env_var: VETTASKSAI_LICENSE_KEY
+            lic_prefix: "vt_"
+            support_email: hello@vettasksai.com
+            domain: vettasksai.com
+            app_folder: VetTasksAI
+            server_bin: vettasksai-server
+
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Install dependencies
         run: pip install pyinstaller -r requirements.txt
-
       - name: Build server binary
         env:
           TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
@@ -111,12 +334,10 @@ jobs:
           TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
         run: |
           pyinstaller --onefile --name ${{ matrix.server_bin }} server.py
-
       - name: Write build config
         shell: python
         run: |
           with open('_build_config.py', 'w') as f:
-              f.write('# Auto-generated at build time\n')
               f.write('PRODUCT_ID = "${{ matrix.product_id }}"\n')
               f.write('PRODUCT_NAME = "${{ matrix.product_name }}"\n')
               f.write('MCP_KEY_NAME = "${{ matrix.mcp_key }}"\n')
@@ -126,22 +347,18 @@ jobs:
               f.write('DOMAIN = "${{ matrix.domain }}"\n')
               f.write('APP_FOLDER = "${{ matrix.app_folder }}"\n')
               f.write('SERVER_BIN = "${{ matrix.server_bin }}"\n')
-
-      - name: Build installer (bundles server binary)
+      - name: Build installer
         run: |
           pyinstaller --onefile `
             --add-binary "dist/${{ matrix.server_bin }}.exe;." `
             --hidden-import _build_config `
             --name "${{ matrix.product_name }}-Setup" `
             install_gui.py
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.product_id }}
           path: dist/${{ matrix.product_name }}-Setup.exe
 
-  # ── macOS builds ────────────────────────────────────────────────────────────
   build-mac:
     runs-on: macos-latest
     strategy:
@@ -217,16 +434,243 @@ jobs:
             app_folder: ContractorTasksAI
             server_bin: contractortasksai-server
 
+          - product_id: accounting
+            product_name: AccountingTasksAI
+            mcp_key: accountingtasksai
+            env_var: ACCOUNTINGTASKSAI_LICENSE_KEY
+            lic_prefix: "at_"
+            support_email: hello@accountingtasksai.com
+            domain: accountingtasksai.com
+            app_folder: AccountingTasksAI
+            server_bin: accountingtasksai-server
+
+          - product_id: chiropractor
+            product_name: ChiropractorTasksAI
+            mcp_key: chiropractortasksai
+            env_var: CHIROPRACTORTASKSAI_LICENSE_KEY
+            lic_prefix: "ch_"
+            support_email: hello@chiropractortasksai.com
+            domain: chiropractortasksai.com
+            app_folder: ChiropractorTasksAI
+            server_bin: chiropractortasksai-server
+
+          - product_id: church
+            product_name: ChurchTasksAI
+            mcp_key: churchtasksai
+            env_var: CHURCHTASKSAI_LICENSE_KEY
+            lic_prefix: "cu_"
+            support_email: hello@churchtasksai.com
+            domain: churchadmintasksai.com
+            app_folder: ChurchTasksAI
+            server_bin: churchtasksai-server
+
+          - product_id: dentist
+            product_name: DentistTasksAI
+            mcp_key: dentisttasksai
+            env_var: DENTISTTASKSAI_LICENSE_KEY
+            lic_prefix: "dt_"
+            support_email: hello@dentisttasksai.com
+            domain: dentisttasksai.com
+            app_folder: DentistTasksAI
+            server_bin: dentisttasksai-server
+
+          - product_id: designer
+            product_name: DesignerTasksAI
+            mcp_key: designertasksai
+            env_var: DESIGNERTASKSAI_LICENSE_KEY
+            lic_prefix: "ds_"
+            support_email: hello@designertasksai.com
+            domain: designertasksai.com
+            app_folder: DesignerTasksAI
+            server_bin: designertasksai-server
+
+          - product_id: electrician
+            product_name: ElectricianTasksAI
+            mcp_key: electriciantasksai
+            env_var: ELECTRICIANTASKSAI_LICENSE_KEY
+            lic_prefix: "el_"
+            support_email: hello@electriciantasksai.com
+            domain: electriciantasksai.com
+            app_folder: ElectricianTasksAI
+            server_bin: electriciantasksai-server
+
+          - product_id: eventplanner
+            product_name: EventPlannerTasksAI
+            mcp_key: eventplannertasksai
+            env_var: EVENTPLANNERTASKSAI_LICENSE_KEY
+            lic_prefix: "ep_"
+            support_email: hello@eventplannertasksai.com
+            domain: eventplannertasksai.com
+            app_folder: EventPlannerTasksAI
+            server_bin: eventplannertasksai-server
+
+          - product_id: funeral
+            product_name: FuneralTasksAI
+            mcp_key: funeraltasksai
+            env_var: FUNERALTASKSAI_LICENSE_KEY
+            lic_prefix: "fu_"
+            support_email: hello@funeraltasksai.com
+            domain: funeraltasksai.com
+            app_folder: FuneralTasksAI
+            server_bin: funeraltasksai-server
+
+          - product_id: hr
+            product_name: HRTasksAI
+            mcp_key: hrtasksai
+            env_var: HRTASKSAI_LICENSE_KEY
+            lic_prefix: "hr_"
+            support_email: hello@hrtasksai.com
+            domain: hrtasksai.com
+            app_folder: HRTasksAI
+            server_bin: hrtasksai-server
+
+          - product_id: insurance
+            product_name: InsuranceTasksAI
+            mcp_key: insurancetasksai
+            env_var: INSURANCETASKSAI_LICENSE_KEY
+            lic_prefix: "in_"
+            support_email: hello@insurancetasksai.com
+            domain: insurancetasksai.com
+            app_folder: InsuranceTasksAI
+            server_bin: insurancetasksai-server
+
+          - product_id: landlord
+            product_name: LandlordTasksAI
+            mcp_key: landlordtasksai
+            env_var: LANDLORDTASKSAI_LICENSE_KEY
+            lic_prefix: "ll_"
+            support_email: hello@landlordtasksai.com
+            domain: landlordtasksai.com
+            app_folder: LandlordTasksAI
+            server_bin: landlordtasksai-server
+
+          - product_id: militaryspouse
+            product_name: MilitarySpouseTasksAI
+            mcp_key: militaryspousetasksai
+            env_var: MILITARYSPOUSETASKSAI_LICENSE_KEY
+            lic_prefix: "ms_"
+            support_email: hello@militaryspousetasksai.com
+            domain: militaryspousetasksai.com
+            app_folder: MilitarySpouseTasksAI
+            server_bin: militaryspousetasksai-server
+
+          - product_id: mortgage
+            product_name: MortgageTasksAI
+            mcp_key: mortgagetasksai
+            env_var: MORTGAGETASKSAI_LICENSE_KEY
+            lic_prefix: "mo_"
+            support_email: hello@mortgagetasksai.com
+            domain: mortgagetasksai.com
+            app_folder: MortgageTasksAI
+            server_bin: mortgagetasksai-server
+
+          - product_id: mortuary
+            product_name: MortuaryTasksAI
+            mcp_key: mortuarytasksai
+            env_var: MORTUARYTASKSAI_LICENSE_KEY
+            lic_prefix: "mu_"
+            support_email: hello@mortuarytasksai.com
+            domain: mortuarytasksai.com
+            app_folder: MortuaryTasksAI
+            server_bin: mortuarytasksai-server
+
+          - product_id: nutritionist
+            product_name: NutritionistTasksAI
+            mcp_key: nutritionisttasksai
+            env_var: NUTRITIONISTTASKSAI_LICENSE_KEY
+            lic_prefix: "nt_"
+            support_email: hello@nutritionisttasksai.com
+            domain: nutritionisttasksai.com
+            app_folder: NutritionistTasksAI
+            server_bin: nutritionisttasksai-server
+
+          - product_id: pastor
+            product_name: PastorTasksAI
+            mcp_key: pastortasksai
+            env_var: PASTORTASKSAI_LICENSE_KEY
+            lic_prefix: "pt_"
+            support_email: hello@pastortasksai.com
+            domain: pastortasksai.com
+            app_folder: PastorTasksAI
+            server_bin: pastortasksai-server
+
+          - product_id: personaltrainer
+            product_name: PersonalTrainerTasksAI
+            mcp_key: personaltrainertasksai
+            env_var: PERSONALTRAINERTASKSAI_LICENSE_KEY
+            lic_prefix: "pp_"
+            support_email: hello@personaltrainertasksai.com
+            domain: personaltrainertasksai.com
+            app_folder: PersonalTrainerTasksAI
+            server_bin: personaltrainertasksai-server
+
+          - product_id: plumber
+            product_name: PlumberTasksAI
+            mcp_key: plumbertasksai
+            env_var: PLUMBERTASKSAI_LICENSE_KEY
+            lic_prefix: "pl_"
+            support_email: hello@plumbertasksai.com
+            domain: plumbertasksai.com
+            app_folder: PlumberTasksAI
+            server_bin: plumbertasksai-server
+
+          - product_id: principal
+            product_name: PrincipalTasksAI
+            mcp_key: principaltasksai
+            env_var: PRINCIPALTASKSAI_LICENSE_KEY
+            lic_prefix: "pr_"
+            support_email: hello@principaltasksai.com
+            domain: principaltasksai.com
+            app_folder: PrincipalTasksAI
+            server_bin: principaltasksai-server
+
+          - product_id: restaurant
+            product_name: RestaurantTasksAI
+            mcp_key: restauranttasksai
+            env_var: RESTAURANTTASKSAI_LICENSE_KEY
+            lic_prefix: "re_"
+            support_email: hello@restauranttasksai.com
+            domain: restauranttasksai.com
+            app_folder: RestaurantTasksAI
+            server_bin: restauranttasksai-server
+
+          - product_id: salon
+            product_name: SalonTasksAI
+            mcp_key: salontasksai
+            env_var: SALONTASKSAI_LICENSE_KEY
+            lic_prefix: "sl_"
+            support_email: hello@salontasksai.com
+            domain: salontasksai.com
+            app_folder: SalonTasksAI
+            server_bin: salontasksai-server
+
+          - product_id: travelagent
+            product_name: TravelAgentTasksAI
+            mcp_key: travelagenttasksai
+            env_var: TRAVELAGENTTASKSAI_LICENSE_KEY
+            lic_prefix: "ta_"
+            support_email: hello@travelagenttasksai.com
+            domain: travelagenttasksai.com
+            app_folder: TravelAgentTasksAI
+            server_bin: travelagenttasksai-server
+
+          - product_id: vet
+            product_name: VetTasksAI
+            mcp_key: vettasksai
+            env_var: VETTASKSAI_LICENSE_KEY
+            lic_prefix: "vt_"
+            support_email: hello@vettasksai.com
+            domain: vettasksai.com
+            app_folder: VetTasksAI
+            server_bin: vettasksai-server
+
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Install dependencies
         run: pip install pyinstaller -r requirements.txt
-
       - name: Build server binary
         env:
           TASKSAI_PRODUCT_ID:     ${{ matrix.product_id }}
@@ -240,12 +684,10 @@ jobs:
           TASKSAI_SERVER_BIN:     ${{ matrix.server_bin }}
         run: |
           pyinstaller --onefile --name ${{ matrix.server_bin }} server.py
-
       - name: Write build config
         shell: python
         run: |
           with open('_build_config.py', 'w') as f:
-              f.write('# Auto-generated at build time\n')
               f.write('PRODUCT_ID = "${{ matrix.product_id }}"\n')
               f.write('PRODUCT_NAME = "${{ matrix.product_name }}"\n')
               f.write('MCP_KEY_NAME = "${{ matrix.mcp_key }}"\n')
@@ -255,22 +697,18 @@ jobs:
               f.write('DOMAIN = "${{ matrix.domain }}"\n')
               f.write('APP_FOLDER = "${{ matrix.app_folder }}"\n')
               f.write('SERVER_BIN = "${{ matrix.server_bin }}"\n')
-
-      - name: Build installer (bundles server binary)
+      - name: Build installer
         run: |
           pyinstaller --onefile \
             --add-binary "dist/${{ matrix.server_bin }}:." \
             --hidden-import _build_config \
             --name "${{ matrix.product_name }}-Setup" \
             install_gui.py
-
-      - name: Upload Mac artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: mac-${{ matrix.product_id }}
           path: dist/${{ matrix.product_name }}-Setup
 
-  # ── Attach all artifacts to GitHub Release ──────────────────────────────────
   release:
     needs: [build-windows, build-mac]
     runs-on: ubuntu-latest
@@ -280,12 +718,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts/
-
       - name: List built files
         run: find artifacts/ -type f | sort
-
-      - name: Create GitHub Release with all installers
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
           generate_release_notes: true
