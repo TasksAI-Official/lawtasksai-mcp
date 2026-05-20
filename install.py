@@ -38,13 +38,17 @@ from datetime import datetime
 
 PRODUCT_ID     = os.getenv("TASKSAI_PRODUCT_ID",   "law")
 PRODUCT_NAME   = os.getenv("TASKSAI_PRODUCT_NAME",  "LawTasksAI")
-MCP_KEY_NAME   = os.getenv("TASKSAI_MCP_KEY",       "lawtasksai")     # key in MCP JSON configs
-ENV_VAR_NAME   = os.getenv("TASKSAI_ENV_VAR",       "LAWTASKSAI_LICENSE_KEY")
+
+# Derive defaults from PRODUCT_NAME if not explicitly overridden.
+# e.g. "FarmerTasksAI" -> mcp key "farmertasksai", folder "FarmerTasksAI", env var "FARMERTASKSAI_LICENSE_KEY"
+_product_slug  = PRODUCT_NAME.lower().replace(" ", "")   # e.g. "farmertasksai"
+MCP_KEY_NAME   = os.getenv("TASKSAI_MCP_KEY",       _product_slug)    # key in MCP JSON configs
+ENV_VAR_NAME   = os.getenv("TASKSAI_ENV_VAR",       f"{_product_slug.upper()}_LICENSE_KEY")
 LICENSE_PREFIX = os.getenv("TASKSAI_LIC_PREFIX",    "lt_")            # e.g. "rt_" for realtor
-SUPPORT_EMAIL  = os.getenv("TASKSAI_SUPPORT_EMAIL", "hello@lawtasksai.com")
+SUPPORT_EMAIL  = os.getenv("TASKSAI_SUPPORT_EMAIL", f"hello@{os.getenv('TASKSAI_DOMAIN', 'lawtasksai.com')}")
 DOMAIN         = os.getenv("TASKSAI_DOMAIN",        "lawtasksai.com")
-APP_FOLDER     = os.getenv("TASKSAI_APP_FOLDER",    "LawTasksAI")     # OS install dir name
-SERVER_BIN     = os.getenv("TASKSAI_SERVER_BIN",    "lawtasksai-server")  # binary name (no ext)
+APP_FOLDER     = os.getenv("TASKSAI_APP_FOLDER",    PRODUCT_NAME)     # OS install dir name
+SERVER_BIN     = os.getenv("TASKSAI_SERVER_BIN",    f"{_product_slug}-server")  # binary name (no ext)
 
 INSTALLER_VERSION = "2.0.0"
 
