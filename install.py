@@ -409,6 +409,7 @@ def _get_mcp_entry(server_path: Path, license_key: str) -> dict:
             "env": {
                 ENV_VAR_NAME: license_key,
                 "TASKSAI_LICENSE_KEY": license_key,
+                "TASKSAI_PRODUCT_ID": PRODUCT_ID,
             }
         }
     else:
@@ -418,6 +419,7 @@ def _get_mcp_entry(server_path: Path, license_key: str) -> dict:
             "env": {
                 ENV_VAR_NAME: license_key,
                 "TASKSAI_LICENSE_KEY": license_key,
+                "TASKSAI_PRODUCT_ID": PRODUCT_ID,
             }
         }
 

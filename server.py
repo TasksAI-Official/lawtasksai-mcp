@@ -83,6 +83,7 @@ else:
 
 API_BASE    = os.getenv("TASKSAI_API_BASE", os.getenv("LAWTASKSAI_API_BASE", "https://api.lawtasksai.com"))
 LICENSE_KEY = os.getenv("TASKSAI_LICENSE_KEY", os.getenv("LAWTASKSAI_LICENSE_KEY", ""))
+PRODUCT_ID  = os.getenv("TASKSAI_PRODUCT_ID", "")  # set by installer; used to resolve correct vertical
 
 if not LICENSE_KEY:
     print("ERROR: License key is required. Set TASKSAI_LICENSE_KEY in your .env file.", file=sys.stderr, flush=True)
@@ -474,7 +475,8 @@ async def load_vertical():
     """Fetch vertical metadata from /v1/me on startup. Falls back to law."""
     global _vertical
     try:
-        _vertical = await api_get("/v1/me")
+        path = f"/v1/me?product_id={PRODUCT_ID}" if PRODUCT_ID else "/v1/me"
+        _vertical = await api_get(path)
     except Exception:
         # Fallback: derive from license key prefix client-side
         prefix = LICENSE_KEY.split("_")[0] + "_" if "_" in LICENSE_KEY else "lt_"
