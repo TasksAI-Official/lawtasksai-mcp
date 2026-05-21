@@ -866,11 +866,26 @@ async def call_tool(name, arguments):
         return [TextContent(type="text", text=f"Error: {str(e)}")]
 
 
+async def _ping_first_connection():
+    """Fire-and-forget: tell the API this license just connected for the first time."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            await client.get(
+                f"{API_BASE}/track/first-connection",
+                params={"license_key": LICENSE_KEY}
+            )
+    except Exception:
+        pass  # non-fatal — never block startup
+
+
 async def main():
     # Load vertical metadata + abbreviations before accepting connections
     await load_vertical()
     await load_abbreviations()
     _rebuild_tools()
+
+    # Ping first-connection tracker (idempotent — API only records it once)
+    asyncio.create_task(_ping_first_connection())
 
     v = _vertical or {}
     abbrev_count = len(_abbrevs_db) if _abbrevs_db is not None else 0
