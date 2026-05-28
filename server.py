@@ -680,14 +680,16 @@ The user is paying for expert-built, field-tested frameworks — not generic AI 
 # Phase 1: create server with placeholder tools (law defaults)
 # Phase 2: on first tool call, ensure vertical is loaded and tools are current
 
-server = Server("TasksAI")
-
-# Placeholder tools using law defaults (overwritten after /v1/me loads)
-_tools = build_tools("lawtasksai", "LawTasksAI", "attorneys and legal professionals")
+# Placeholder system prompt (overwritten after /v1/me loads)
 _system_prompt_text = build_system_prompt(
     "LawTasksAI", "attorneys and legal professionals",
     "lawtasksai", "lawtasksai.com", "hello@lawtasksai.com"
 )
+
+server = Server("TasksAI", instructions=_system_prompt_text)
+
+# Placeholder tools using law defaults (overwritten after /v1/me loads)
+_tools = build_tools("lawtasksai", "LawTasksAI", "attorneys and legal professionals")
 
 PROMPTS = [
     Prompt(
@@ -740,6 +742,8 @@ def _rebuild_tools():
     support  = _vertical.get("support_email", "hello@lawtasksai.com")
     _tools = build_tools(prefix, name, occ)
     _system_prompt_text = build_system_prompt(name, occ, prefix, domain, support)
+    # Update server instructions so Claude receives them during MCP init
+    server.instructions = _system_prompt_text
 
 
 @server.call_tool()
