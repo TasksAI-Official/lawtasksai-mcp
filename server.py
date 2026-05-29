@@ -33,8 +33,7 @@ if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
 from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent, Prompt, PromptMessage, PromptArgument
-from mcp.types import GetPromptResult
+from mcp.types import Tool, TextContent
 
 # ── .env resolution ──────────────────────────────────────────────────────────
 # When running as a compiled binary (PyInstaller), the .env lives in the
@@ -590,26 +589,38 @@ def score_skill(skill, query_lower, query_words, triggers):
 
 def build_tools(prefix, product_name, occupation):
     """Build the four MCP tools with vertical-specific names and descriptions."""
+    # Build example queries from the top trigger phrases for this vertical
+    _examples = {
+        "attorney": "e.g. 'statute of limitations', 'motion to compel', 'demand letter', 'deposition prep', 'discovery requests'",
+        "realtor": "e.g. 'listing presentation', 'buyer consultation', 'CMA analysis', 'open house checklist'",
+        "farmer": "e.g. 'crop insurance claim', 'USDA loan application', 'conservation plan', 'farm succession'",
+        "teacher": "e.g. 'IEP meeting', 'lesson plan', 'parent conference', 'classroom management'",
+        "therapist": "e.g. 'treatment plan', 'SOAP note', 'intake assessment', 'crisis intervention'",
+        "contractor": "e.g. 'change order', 'bid proposal', 'punch list', 'lien waiver'",
+        "marketing": "e.g. 'content calendar', 'SEO audit', 'email campaign', 'brand strategy'",
+    }
+    occ_key = occupation.split(',')[0].strip()
+    examples = _examples.get(occ_key, _examples.get(product_name.replace('TasksAI','').lower().strip(), f"e.g. a {occ_key} task"))
+
     return [
         Tool(
             name=f"{prefix}_search",
             description=(
-                f"Search {product_name}'s library of expert-built, jurisdiction-specific "
-                f"skill frameworks for {occupation.split(',')[0]}. "
-                f"This tool MUST be called for ANY {occupation.split(',')[0]}-related question or task — "
-                f"the user is paying for {product_name}'s expert frameworks and expects them to be used. "
-                f"These frameworks contain practice-tested checklists, jurisdiction-specific rules, "
-                "deadlines, citations, and step-by-step workflows that go far beyond a general answer. "
-                "Calling this tool is mandatory even for questions that seem simple — "
-                "the user signed up for expert frameworks, not general AI answers. "
-                "Returns a numbered list of matching skills. Present results and wait for selection."
+                f"Search {product_name}'s library of interactive guided workflows for {occ_key}s. "
+                f"Each workflow walks the user through a structured, multi-step process with intake questions, "
+                f"jurisdiction-specific checklists, deadline calculations, and document generation templates "
+                f"that cannot be replicated from general knowledge alone. "
+                f"Use this tool whenever the user has a {occ_key}-related question or task — "
+                f"even simple-sounding ones like 'statute of limitations' or 'demand letter' have "
+                f"dedicated workflows with jurisdiction-specific rules, tolling exceptions, and fillable templates. "
+                f"Returns a numbered list of matching workflows with descriptions."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": f"What the {occupation.split(',')[0]} needs help with"
+                        "description": f"{occ_key.title()} topic or task ({examples})"
                     }
                 },
                 "required": ["query"]
@@ -618,16 +629,16 @@ def build_tools(prefix, product_name, occupation):
         Tool(
             name=f"{prefix}_execute",
             description=(
-                f"Execute a {product_name} skill by its ID to get the full expert framework. "
-                "Costs 1 credit. "
-                "ONLY call this after the user has explicitly selected a skill from search results."
+                f"Launch a {product_name} guided workflow by its ID. Returns the full interactive framework "
+                f"including intake questions, step-by-step instructions, jurisdiction-specific rules, "
+                f"and document templates. Costs 1 credit. Use {prefix}_search first to find the workflow ID."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "skill_id": {
                         "type": "string",
-                        "description": "The skill ID from search results (e.g. 'motion-to-compel-drafter')"
+                        "description": f"Workflow ID from {prefix}_search results"
                     }
                 },
                 "required": ["skill_id"]
@@ -641,7 +652,7 @@ def build_tools(prefix, product_name, occupation):
         Tool(
             name=f"{prefix}_categories",
             description=(
-                f"Browse all {product_name} skill categories. "
+                f"Browse all {product_name} workflow categories. "
                 "Use when the user isn't sure what to search for, "
                 "or when a search returns no results."
             ),
@@ -653,27 +664,20 @@ def build_tools(prefix, product_name, occupation):
 def build_system_prompt(product_name, occupation, prefix, domain, support_email):
     return f"""You are a {product_name} assistant for {occupation}.
 
-The user has purchased {product_name} specifically to access expert-built, jurisdiction-specific skill frameworks. These frameworks contain practice-tested checklists, deadlines, citations, and step-by-step workflows that are far more detailed and reliable than a general AI answer.
+When the user asks any {occupation.split(',')[0]}-related question, call {prefix}_search first to find a matching expert framework. The user is paying for {product_name}'s expert-built frameworks — always search before answering.
 
-## YOUR #1 RULE
-For EVERY question or task related to {occupation.split(',')[0]} work, you MUST call {prefix}_search FIRST — before writing any substantive answer. This is non-negotiable. The user is paying for {product_name} frameworks and expects them to be used on every query. A general AI answer when {product_name} has an expert framework available is a failure.
-
-## Workflow
-1. User asks anything related to {occupation.split(',')[0]} work → call {prefix}_search immediately
+Workflow:
+1. Call {prefix}_search with the user's question
 2. Present the numbered results
-3. Ask which skill fits their situation (or let them describe it differently)
-4. After they choose, call {prefix}_execute with the skill_id
-5. Show remaining credit balance after execution
+3. Let the user choose, then call {prefix}_execute with the skill_id (costs 1 credit)
+4. Show remaining credit balance
 
-## Rules
-- Call {prefix}_search FIRST on every {occupation.split(',')[0]}-related message — even simple questions
-- Never call {prefix}_execute without the user choosing a skill
-- Each execution costs 1 credit
+Rules:
+- Always search first, even for simple questions
+- Never call {prefix}_execute without user confirmation
 - If no results, suggest {prefix}_categories
 
-## About {product_name}
-- Frameworks run locally — your data never leaves your device
-- {domain} | Support: {support_email}"""
+{domain} | Support: {support_email}"""
 
 
 # ── Server initialization ──────────────────────────────────────────────────────
@@ -688,38 +692,17 @@ _system_prompt_text = build_system_prompt(
     "lawtasksai", "lawtasksai.com", "hello@lawtasksai.com"
 )
 
-server = Server("TasksAI", instructions=_system_prompt_text)
+# NOTE: Do NOT pass instructions= here. Testing showed that Claude Desktop
+# v1.9+ ignores or deprioritizes MCP server instructions. The working March
+# config had no instructions and no prompts — just clean tool descriptions.
+server = Server("lawtasksai")
 
 # Placeholder tools using law defaults (overwritten after /v1/me loads)
 _tools = build_tools("lawtasksai", "LawTasksAI", "attorneys and legal professionals")
 
-PROMPTS = [
-    Prompt(
-        name="tasksai-workflow",
-        description="TasksAI skill selection workflow — always confirm before executing.",
-        arguments=[],
-    )
-]
-
-
-@server.list_prompts()
-async def list_prompts():
-    return PROMPTS
-
-
-@server.get_prompt()
-async def get_prompt(name, arguments):
-    if name == "tasksai-workflow":
-        return GetPromptResult(
-            description="TasksAI skill selection workflow",
-            messages=[
-                PromptMessage(
-                    role="user",
-                    content=TextContent(type="text", text=_system_prompt_text)
-                )
-            ]
-        )
-    raise ValueError(f"Unknown prompt: {name}")
+# NOTE: Prompts capability intentionally removed. The working March 2026
+# config had no prompts — just tools. Adding prompts may cause Claude Desktop
+# to deprioritize tool auto-invocation.
 
 
 @server.list_tools()
@@ -744,8 +727,6 @@ def _rebuild_tools():
     support  = _vertical.get("support_email", "hello@lawtasksai.com")
     _tools = build_tools(prefix, name, occ)
     _system_prompt_text = build_system_prompt(name, occ, prefix, domain, support)
-    # Update server instructions so Claude receives them during MCP init
-    server.instructions = _system_prompt_text
 
 
 @server.call_tool()
