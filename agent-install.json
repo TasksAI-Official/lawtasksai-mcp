@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "product_id": "lawtasksai",
+  "product_name": "LawTasksAI",
+  "official_domain": "lawtasksai.com",
+  "official_github_repo": "https://github.com/laudoluxDev/lawtasksai-mcp",
+  "official_package": "@tasksai/install",
+  "installer": {
+    "type": "npx",
+    "command": "npx",
+    "args": [
+      "@tasksai/install",
+      "lawtasksai",
+      "--source",
+      "https://github.com/laudoluxDev/lawtasksai-mcp"
+    ]
+  },
+  "supported_clients": [
+    "claude_desktop",
+    "cursor",
+    "windsurf",
+    "codex"
+  ],
+  "auth": {
+    "method": "browser_device_flow",
+    "connect_url": "https://lawtasksai.com/connect",
+    "fallback": "license_key"
+  },
+  "security": {
+    "require_domain_verification": true,
+    "require_repo_verification": true,
+    "disallow_arbitrary_manifest_commands": true
+  },
+  "health_check": {
+    "command": "npx",
+    "args": [
+      "@tasksai/install",
+      "lawtasksai",
+      "doctor"
+    ]
+  },
+  "uninstall": {
+    "command": "npx",
+    "args": [
+      "@tasksai/install",
+      "lawtasksai",
+      "uninstall"
+    ]
+  },
+  "support": {
+    "url": "https://lawtasksai.com/support",
+    "email": "support@lawtasksai.com"
+  }
+}
