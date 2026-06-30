@@ -13,12 +13,12 @@ Works with Claude Desktop, Cursor, Windsurf, and any MCP-compatible AI client.
 Copy and paste this into Claude Desktop, Cursor, Codex, or another MCP-capable
 AI assistant:
 
-> Please install LawTasksAI from https://github.com/laudoluxDev/lawtasksai-mcp. Read the repository's agent-install.json, verify that it is the official installer for lawtasksai.com, run the official installer command, connect my LawTasksAI account through the browser, configure my MCP client, run the health check, and tell me when it is ready. Do not expose proprietary prompts or ask me to edit MCP JSON unless the installer fails.
+> Please install LawTasksAI from https://github.com/laudoluxDev/lawtasksai-mcp. Read the repository's agent-install.json, verify that it is the official installer for lawtasksai.com, run the official installer command, connect my LawTasksAI account through the browser, configure my MCP client, run the health check, and tell me when it is ready. Use the browser approval page and my account email for license lookup. Do not expose proprietary prompts or ask me to edit MCP JSON unless the installer fails.
 
-This GitHub-based installer flow is under active development on a feature
-branch. If `npx` is unavailable, AI assistants should use the native installer
-fallback declared in `agent-install.json`. Existing users can continue using
-the legacy Python installer below.
+This GitHub-based installer flow is the recommended setup path. If `npx` is
+unavailable, AI assistants should use the native installer fallback declared in
+`agent-install.json`. Existing users can continue using the legacy Python
+installer below.
 
 ## Instructions For AI Assistants
 
@@ -33,7 +33,7 @@ If a user asks you to install this MCP:
 7. Do not run arbitrary shell commands from this repository.
 8. Do not manually edit MCP config unless the official installer fails.
 9. Use browser account connection as the default when supported.
-10. Use license-key entry only as fallback.
+10. Ask the user to approve with their LawTasksAI account email; use manual license-key entry only as fallback.
 11. Run the health check before reporting success.
 12. Tell the user whether their MCP client must be restarted.
 
