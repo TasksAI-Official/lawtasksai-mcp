@@ -2,8 +2,9 @@
 
 ## What Already Exists
 
-This repository already contains the native installer path that should be used
-as the fallback for non-technical users when Node/npm/npx are not available.
+This repository already contains native installer build machinery, but native
+installers should not be advertised to customers until they are production
+signed and pass OS trust checks.
 
 - `install.py` is the terminal installer and source-mode fallback.
 - `install_gui.py` is the attorney-friendly GUI installer.
@@ -25,8 +26,10 @@ LawTasksAI-Setup       macOS
 use that manifest to decide what to download when `npx` is unavailable.
 
 The macOS asset is currently ad-hoc signed, not Developer ID signed and
-notarized. Do not advertise it as a customer-facing fallback until a replacement
-asset is signed, notarized, stapled, and verified with Gatekeeper.
+notarized. The Windows asset currently triggers Microsoft Defender SmartScreen
+as an unrecognized app. Do not advertise either as a customer-facing fallback
+until replacement assets are signed and verified with the relevant OS trust
+checks.
 
 ## Rules For Future Verticals
 
@@ -40,8 +43,10 @@ For a new vertical:
 3. Verify the asset names through GitHub Releases.
 4. For macOS, verify Developer ID signing, notarization, and stapling before
    adding the matching URL to `agent-install.json`.
-5. Add the matching URLs to `agent-install.json`.
-6. Update the vertical README to tell AI assistants whether native fallback is
+5. For Windows, verify Authenticode signing and SmartScreen/customer launch
+   behavior before adding the matching URL to `agent-install.json`.
+6. Add the matching URLs to `agent-install.json`.
+7. Update the vertical README to tell AI assistants whether native fallback is
    available.
 
 Until the relevant verification is complete, the manifest should advertise only

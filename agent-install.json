@@ -20,17 +20,6 @@
         "npm",
         "npx"
       ]
-    },
-    "fallbacks": {
-      "windows": {
-        "type": "download",
-        "url": "https://github.com/laudoluxDev/lawtasksai-mcp/releases/latest/download/LawTasksAI-Setup.exe",
-        "user_action_required": [
-          "approve browser download if prompted",
-          "approve Windows SmartScreen or UAC prompts",
-          "follow the installer wizard"
-        ]
-      }
     }
   },
   "supported_clients": [
