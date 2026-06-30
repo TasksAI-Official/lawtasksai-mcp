@@ -21,8 +21,12 @@ LawTasksAI-Setup.exe   Windows
 LawTasksAI-Setup       macOS
 ```
 
-`agent-install.json` must match those names exactly because AI assistants use
-that manifest to decide what to download when `npx` is unavailable.
+`agent-install.json` must match published names exactly because AI assistants
+use that manifest to decide what to download when `npx` is unavailable.
+
+The macOS asset is currently ad-hoc signed, not Developer ID signed and
+notarized. Do not advertise it as a customer-facing fallback until a replacement
+asset is signed, notarized, stapled, and verified with Gatekeeper.
 
 ## Rules For Future Verticals
 
@@ -34,11 +38,14 @@ For a new vertical:
 1. Add the vertical to the build matrix or create that vertical's release flow.
 2. Publish a release with real Windows and macOS installer assets.
 3. Verify the asset names through GitHub Releases.
-4. Add the matching URLs to `agent-install.json`.
-5. Update the vertical README to tell AI assistants whether native fallback is
+4. For macOS, verify Developer ID signing, notarization, and stapling before
+   adding the matching URL to `agent-install.json`.
+5. Add the matching URLs to `agent-install.json`.
+6. Update the vertical README to tell AI assistants whether native fallback is
    available.
 
-Until step 3 is complete, the manifest should advertise only the `npx` path.
+Until the relevant verification is complete, the manifest should advertise only
+the `npx` path for that platform.
 
 ## Security Notes
 
