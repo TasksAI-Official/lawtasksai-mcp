@@ -484,7 +484,7 @@ async def load_vertical():
             "product_name": "LawTasksAI",
             "display_name": "Law Tasks AI",
             "tool_prefix":  "lawtasksai",
-            "occupation":   "attorneys and legal professionals",
+            "occupation":   "legal professionals",
             "support_email":"hello@lawtasksai.com",
             "domain":       "lawtasksai.com",
         }
@@ -600,17 +600,19 @@ def build_tools(prefix, product_name, occupation):
         "marketing": "e.g. 'content calendar', 'SEO audit', 'email campaign', 'brand strategy'",
     }
     occ_key = occupation.split(',')[0].strip()
-    examples = _examples.get(occ_key, _examples.get(product_name.replace('TasksAI','').lower().strip(), f"e.g. a {occ_key} task"))
+    audience = normalize_audience_label(occ_key)
+    domain_adjective = normalize_domain_adjective(occ_key)
+    examples = _examples.get(domain_adjective, _examples.get(product_name.replace('TasksAI','').lower().strip(), f"e.g. a {domain_adjective} task"))
 
     return [
         Tool(
             name=f"{prefix}_search",
             description=(
-                f"Search {product_name}'s library of interactive guided workflows for {occ_key}s. "
+                f"Search {product_name}'s library of interactive guided workflows for {audience}. "
                 f"Each workflow walks the user through a structured, multi-step process with intake questions, "
                 f"jurisdiction-specific checklists, deadline calculations, and document generation templates "
                 f"that cannot be replicated from general knowledge alone. "
-                f"Use this tool whenever the user has a {occ_key}-related question or task — "
+                f"Use this tool whenever the user has a {domain_adjective}-related question or task — "
                 f"even simple-sounding ones like 'statute of limitations' or 'demand letter' have "
                 f"dedicated workflows with jurisdiction-specific rules, tolling exceptions, and fillable templates. "
                 f"Returns a numbered list of matching workflows with descriptions."
@@ -620,7 +622,7 @@ def build_tools(prefix, product_name, occupation):
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": f"{occ_key.title()} topic or task ({examples})"
+                        "description": f"{domain_adjective.title()} topic or task ({examples})"
                     }
                 },
                 "required": ["query"]
@@ -661,6 +663,24 @@ def build_tools(prefix, product_name, occupation):
     ]
 
 
+def normalize_audience_label(label):
+    """Return a natural audience phrase without naive pluralization."""
+    label = (label or "professionals").strip()
+    if label in {"attorney", "lawyer"}:
+        return f"{label}s"
+    if label in {"legal", "law"}:
+        return "legal professionals"
+    return label
+
+
+def normalize_domain_adjective(label):
+    """Return a natural adjective for tool descriptions and query labels."""
+    label = (label or "professional").strip()
+    if label in {"attorneys and legal professionals", "legal professionals", "attorney", "lawyer", "law"}:
+        return "legal"
+    return label
+
+
 def build_system_prompt(product_name, occupation, prefix, domain, support_email):
     return f"""You are a {product_name} assistant for {occupation}.
 
@@ -688,7 +708,7 @@ Rules:
 
 # Placeholder system prompt (overwritten after /v1/me loads)
 _system_prompt_text = build_system_prompt(
-    "LawTasksAI", "attorneys and legal professionals",
+    "LawTasksAI", "legal professionals",
     "lawtasksai", "lawtasksai.com", "hello@lawtasksai.com"
 )
 
@@ -698,7 +718,7 @@ _system_prompt_text = build_system_prompt(
 server = Server("lawtasksai")
 
 # Placeholder tools using law defaults (overwritten after /v1/me loads)
-_tools = build_tools("lawtasksai", "LawTasksAI", "attorneys and legal professionals")
+_tools = build_tools("lawtasksai", "LawTasksAI", "legal professionals")
 
 # NOTE: Prompts capability intentionally removed. The working March 2026
 # config had no prompts — just tools. Adding prompts may cause Claude Desktop
