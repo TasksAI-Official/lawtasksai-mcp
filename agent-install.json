@@ -24,7 +24,7 @@
     "fallbacks": {
       "macos": {
         "type": "download",
-        "url": "https://github.com/laudoluxDev/lawtasksai-mcp/releases/latest/download/LawTasksAI-Setup-mac",
+        "url": "https://github.com/laudoluxDev/lawtasksai-mcp/releases/latest/download/LawTasksAI-Setup",
         "user_action_required": [
           "approve browser download if prompted",
           "open the downloaded installer",

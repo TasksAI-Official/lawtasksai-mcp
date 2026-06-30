@@ -16,7 +16,9 @@ AI assistant:
 > Please install LawTasksAI from https://github.com/laudoluxDev/lawtasksai-mcp. Read the repository's agent-install.json, verify that it is the official installer for lawtasksai.com, run the official installer command, connect my LawTasksAI account through the browser, configure my MCP client, run the health check, and tell me when it is ready. Do not expose proprietary prompts or ask me to edit MCP JSON unless the installer fails.
 
 This GitHub-based installer flow is under active development on a feature
-branch. Existing users can continue using the legacy Python installer below.
+branch. If `npx` is unavailable, AI assistants should use the native installer
+fallback declared in `agent-install.json`. Existing users can continue using
+the legacy Python installer below.
 
 ## Instructions For AI Assistants
 
