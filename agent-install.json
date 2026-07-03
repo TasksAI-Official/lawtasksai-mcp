@@ -6,19 +6,18 @@
   "official_github_repo": "https://github.com/laudoluxDev/lawtasksai-mcp",
   "official_package": "@tasksai/install",
   "installer": {
-    "preferred": "npx",
-    "npx": {
-      "command": "npx",
+    "preferred": "npm_exec",
+    "npm_exec": {
+      "command": "npm",
       "args": [
-        "@tasksai/install",
-        "lawtasksai",
-        "--source",
-        "https://github.com/laudoluxDev/lawtasksai-mcp"
+        "exec",
+        "--package=@tasksai/install",
+        "--call",
+        "tasksai-install lawtasksai --source https://github.com/laudoluxDev/lawtasksai-mcp"
       ],
       "requires": [
         "node",
-        "npm",
-        "npx"
+        "npm"
       ]
     }
   },
@@ -69,23 +68,29 @@
     "native_installer_user_approval_required": true
   },
   "health_check": {
-    "command": "npx",
+    "command": "npm",
     "args": [
-      "@tasksai/install",
-      "lawtasksai",
-      "doctor"
+      "exec",
+      "--package=@tasksai/install",
+      "--call",
+      "tasksai-install lawtasksai doctor"
     ]
   },
   "uninstall": {
-    "command": "npx",
+    "command": "npm",
     "args": [
-      "@tasksai/install",
-      "lawtasksai",
-      "uninstall"
+      "exec",
+      "--package=@tasksai/install",
+      "--call",
+      "tasksai-install lawtasksai uninstall"
     ]
   },
   "support": {
     "url": "https://lawtasksai.com/support",
     "email": "support@lawtasksai.com"
+  },
+  "runtime": {
+    "source": "shared_installer",
+    "notes": "The wrapper repo provides product metadata; @tasksai/install supplies the shared MCP runtime."
   }
 }
