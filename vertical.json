@@ -6,6 +6,6 @@
   "website_url": "https://lawtasksai.com",
   "billing_url": "https://lawtasksai.com/#pricing",
   "support_email": "support@lawtasksai.com",
-  "privacy_summary": "LawTasksAI servers handle authentication, credits, catalog/search metadata, and licensed skill delivery. LawTasksAI does not process the user's task content. The user's chosen AI assistant or LLM performs the task work according to that provider's privacy terms.",
+  "privacy_summary": "LawTasksAI servers handle authentication, credits, catalog/search metadata, and licensed skill delivery. LawTasksAI does not process the user's task content or generated output files. The user's chosen AI assistant or LLM performs the task work according to that provider's privacy terms, and saved files are created locally by the MCP runtime.",
   "first_prompt": "Check my LawTasksAI credit balance."
 }
