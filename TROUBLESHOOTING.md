@@ -5,7 +5,7 @@
 Stop installation and confirm that the source repository is:
 
 ```text
-https://github.com/laudoluxDev/lawtasksai-mcp
+https://github.com/TasksAI-Official/lawtasksai-mcp
 ```
 
 ## Browser login times out

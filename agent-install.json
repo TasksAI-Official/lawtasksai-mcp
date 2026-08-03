@@ -3,7 +3,9 @@
   "product_id": "lawtasksai",
   "product_name": "LawTasksAI",
   "official_domain": "lawtasksai.com",
-  "official_github_repo": "https://github.com/laudoluxDev/lawtasksai-mcp",
+  "official_github_repo": "https://github.com/TasksAI-Official/tasksai-mcp-wrappers",
+  "official_manifest_path": "verticals/lawtasksai/agent-install.json",
+  "official_source_url": "https://github.com/TasksAI-Official/tasksai-mcp-wrappers/tree/main/verticals/lawtasksai",
   "official_package": "@tasksai/install",
   "installer": {
     "preferred": "npm_exec",
@@ -13,7 +15,7 @@
         "exec",
         "--package=@tasksai/install",
         "--call",
-        "tasksai-install lawtasksai --source https://github.com/laudoluxDev/lawtasksai-mcp"
+        "tasksai-install lawtasksai --source https://github.com/TasksAI-Official/tasksai-mcp-wrappers/tree/main/verticals/lawtasksai"
       ],
       "requires": [
         "node",
